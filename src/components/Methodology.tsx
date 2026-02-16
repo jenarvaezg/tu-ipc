@@ -309,37 +309,74 @@ const elegida = sorted[0] // Más larga = v1`}
               <TableRow>
                 <TableCell className="font-medium">🏠 Pensionista (propietario)</TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  ~80% de los mayores de 65 años son propietarios sin hipoteca. Se reduce vivienda a ~10%
-                  (solo suministros y mantenimiento, sin alquiler) y se eleva alimentación (~30%), sanidad (~14%)
-                  y otros servicios (seguros, cuidado personal)
+                  ~80% de los mayores de 65 años son propietarios (Censo INE 2021). Vivienda al ~18%
+                  (suministros, comunidad, IBI, mantenimiento, sin alquiler). Alto gasto en alimentación (~28%)
+                  y sanidad (~13%). Según la EPF, los hogares de mayores dedican proporcionalmente más a
+                  alimentación en casa y servicios sanitarios
                 </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">👴 Pensionista (inquilino)</TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  ~20% de pensionistas que pagan alquiler. Vivienda sube a ~22% (incluye alquiler real + suministros).
-                  Alto gasto en alimentación y sanidad, menor gasto en ocio y restaurantes
+                  ~20% de pensionistas en alquiler. Vivienda al ~22% (alquiler real + suministros).
+                  Alto gasto en alimentación (~28%) y sanidad (~12%). Menor gasto en ocio y restaurantes
+                  que la media. Basado en datos de la EPF cruzados con la ECV
                 </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">👨‍👩‍👧‍👦 Familia con hijos</TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  Basado en EPF para hogares con menores. Alto gasto en alimentación (~25%), educación (~6%),
-                  vivienda (~18%) y vestido/calzado (~7%). Menor gasto relativo en ocio y restaurantes
+                  Basado en la EPF para hogares con menores dependientes. Alto gasto en alimentación (~25%),
+                  vivienda (~18%), educación (~6%) y vestido/calzado (~7%). Menor gasto relativo en
+                  ocio y restaurantes frente a hogares sin hijos
                 </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">🧑 Joven soltero/a</TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  Basado en EPF para hogares unipersonales &lt;35 años. Alto gasto en restaurantes (~18%),
-                  ocio (~12%), transporte (~14%) y comunicaciones (~5%). Menor gasto en alimentación en casa
+                  Basado en la EPF para hogares unipersonales &lt;35 años y datos del Observatorio
+                  de Emancipación del CJE. Vivienda al ~35% (el alquiler medio supone más de un tercio
+                  del gasto de los jóvenes). Alto gasto en ocio (~14%) y restaurantes (~10%).
+                  Menor gasto en alimentación en casa (~12%)
                 </TableCell>
               </TableRow>
             </TableBody>
           </Table>
 
+          <h3 className="text-lg font-semibold mt-6 mb-3">Referencias</h3>
+          <ul className="text-sm text-muted-foreground space-y-2 ml-4 list-disc">
+            <li>
+              <a href="https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736176806&menu=ultiDatos&idp=1254735976608"
+                target="_blank" rel="noopener noreferrer"
+                className="underline underline-offset-4 hover:text-foreground transition-colors">
+                Encuesta de Presupuestos Familiares (EPF)
+              </a> — INE. Gasto medio por hogar según tipo, composición y edad del sustentador principal
+            </li>
+            <li>
+              <a href="https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736176807&menu=ultiDatos&idp=1254735976608"
+                target="_blank" rel="noopener noreferrer"
+                className="underline underline-offset-4 hover:text-foreground transition-colors">
+                Encuesta de Condiciones de Vida (ECV)
+              </a> — INE. Régimen de tenencia de vivienda, costes y cargas por edad y tipo de hogar
+            </li>
+            <li>
+              <a href="https://www.ine.es/censos2021/"
+                target="_blank" rel="noopener noreferrer"
+                className="underline underline-offset-4 hover:text-foreground transition-colors">
+                Censo de Población y Viviendas 2021
+              </a> — INE. Datos de tenencia de vivienda por grupo de edad
+            </li>
+            <li>
+              <a href="http://www.cje.org/es/publicaciones/observatorio-de-emancipacion/"
+                target="_blank" rel="noopener noreferrer"
+                className="underline underline-offset-4 hover:text-foreground transition-colors">
+                Observatorio de Emancipación
+              </a> — Consejo de la Juventud de España (CJE). Coste de emancipación y gasto en vivienda de los jóvenes
+            </li>
+          </ul>
+
           <p className="text-sm text-muted-foreground/70 mt-4">
-            Estos perfiles son aproximaciones para facilitar el uso de la herramienta.
+            Estos perfiles son aproximaciones orientativas para facilitar el uso de la herramienta.
             Para obtener tu IPC más preciso, ajusta los pesos manualmente según tus gastos reales.
             El IPC del INE no incluye alquileres imputados (el coste teórico de vivir en una vivienda en propiedad),
             por eso la distinción entre propietario e inquilino se refiere exclusivamente al alquiler real.
