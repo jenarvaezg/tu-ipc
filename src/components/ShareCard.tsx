@@ -67,7 +67,7 @@ const ShareCard = forwardRef<HTMLDivElement, ShareCardProps>(
         {/* Footer */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
           <p style={{ fontSize: 18, color: '#94a3b8' }}>
-            Calcula el tuyo en tu-ipc.vercel.app
+            Calcula el tuyo en tu-ipc.es
           </p>
           <p style={{ fontSize: 14, color: '#cbd5e1', maxWidth: 500, textAlign: 'right', wordBreak: 'break-all' }}>
             {url.length > 80 ? url.slice(0, 80) + '...' : url}
