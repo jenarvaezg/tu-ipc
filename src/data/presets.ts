@@ -22,11 +22,11 @@ export const PRESETS: WeightPreset[] = [
     id: 'pensionista-propietario',
     name: 'Pensionista (propietario)',
     icon: '🏠',
-    description: 'Vivienda en propiedad: sin alquiler, alto gasto en alimentación, sanidad y suministros',
+    description: 'Vivienda en propiedad: suministros, comunidad, IBI, alto gasto en alimentación y sanidad',
     weights: {
-      '01': 30.0, '02': 2.5, '03': 3.0, '04': 10.0,
-      '05': 7.0, '06': 14.0, '07': 8.0, '08': 3.5,
-      '09': 5.5, '10': 0.5, '11': 7.0, '12': 9.0,
+      '01': 28.0, '02': 2.0, '03': 2.5, '04': 18.0,
+      '05': 6.0, '06': 13.0, '07': 7.0, '08': 3.0,
+      '09': 5.0, '10': 0.5, '11': 6.0, '12': 9.0,
     },
   },
   {
