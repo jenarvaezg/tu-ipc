@@ -75,17 +75,12 @@ export default function App() {
   // URL params take priority over localStorage
   const urlState = useMemo(() => parseURLState(), [])
 
-  // Check if URL has any params - if so, skip landing page
-  const hasURLParams = useMemo(() => {
-    return urlState.weights !== null ||
-           urlState.region !== null ||
-           urlState.startMonth !== null ||
-           urlState.endMonth !== null ||
-           urlState.activeTab !== null ||
-           urlState.comparisonIds !== null
+  // Skip landing only if URL has custom weights or comparisons (= shared link)
+  const hasSharedParams = useMemo(() => {
+    return urlState.weights != null || urlState.comparisonIds != null
   }, [urlState])
 
-  const [showLanding, setShowLanding] = useState(() => !hasURLParams)
+  const [showLanding, setShowLanding] = useState(() => !hasSharedParams)
 
   const [weights, setWeights] = useState<Record<string, number>>(
     () => urlState.weights || loadWeights()
