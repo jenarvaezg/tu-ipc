@@ -34,7 +34,7 @@ export default function KPICards({ personalIPC, officialIPC, difference, compari
 
   const baseCards = isCustom ? 3 : 1
   const totalCards = baseCards + comparisons.length
-  const gridCols = totalCards <= 1 ? 'md:grid-cols-1 max-w-sm mx-auto' :
+  const gridCols = totalCards === 1 ? 'md:grid-cols-1' :
     totalCards <= 3 ? `md:grid-cols-${totalCards}` :
     totalCards === 4 ? 'md:grid-cols-2 lg:grid-cols-4' :
     'md:grid-cols-3 lg:grid-cols-' + Math.min(totalCards, 6)
@@ -57,6 +57,11 @@ export default function KPICards({ personalIPC, officialIPC, difference, compari
           <p className={`text-3xl font-bold ${officialColor}`}>
             {officialIPC >= 0 ? '+' : ''}{officialIPC.toFixed(2)}%
           </p>
+          {!isCustom && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Personaliza tus pesos para calcular tu IPC
+            </p>
+          )}
         </CardContent>
       </Card>
       {isCustom && (

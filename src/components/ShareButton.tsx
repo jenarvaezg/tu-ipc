@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { toPng } from 'html-to-image'
 import { Button } from '@/components/ui/button'
+import { Link2, Type, Image } from 'lucide-react'
 import ShareCard from '@/components/ShareCard'
 
 interface ShareButtonProps {
@@ -92,31 +93,34 @@ export default function ShareButton({
 
   return (
     <>
-      <div className="inline-flex rounded-lg border border-border overflow-hidden">
+      <div className="inline-flex gap-1">
         <Button
           variant="ghost"
-          size="sm"
+          size="icon"
           onClick={handleShareText}
-          className="rounded-none border-r border-border"
+          className="h-8 w-8 hover:bg-primary/10"
+          title={copiedText ? '¡Copiado!' : 'Copiar como texto'}
         >
-          {copiedText ? 'Copiado!' : 'Texto'}
+          <Type className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
-          size="sm"
+          size="icon"
           onClick={handleCopyLink}
-          className="rounded-none border-r border-border"
+          className="h-8 w-8 hover:bg-primary/10"
+          title={copiedLink ? '¡Copiado!' : 'Copiar enlace'}
         >
-          {copiedLink ? 'Copiado!' : 'Enlace'}
+          <Link2 className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
-          size="sm"
+          size="icon"
           onClick={handleShareImage}
           disabled={generatingImage}
-          className="rounded-none"
+          className="h-8 w-8 hover:bg-primary/10"
+          title={generatingImage ? 'Generando...' : 'Descargar como imagen'}
         >
-          {generatingImage ? 'Generando...' : 'Imagen'}
+          <Image className="h-4 w-4" />
         </Button>
       </div>
       <div style={{ position: 'fixed', top: 0, left: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: -1 }}>

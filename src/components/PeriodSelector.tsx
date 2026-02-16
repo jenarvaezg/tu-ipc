@@ -57,29 +57,29 @@ export default function PeriodSelector({
   }
 
   return (
-    <Card className="mb-8">
-      <CardHeader>
-        <CardTitle>Periodo de comparación</CardTitle>
+    <Card className="mb-6">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">Periodo de comparación</CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="flex flex-wrap gap-2 mb-4">
+      <CardContent className="space-y-3">
+        <div className="flex flex-wrap gap-1.5">
           {presets.map((p) => (
             <Button
               key={p.label}
               variant="secondary"
               size="sm"
               onClick={() => applyPreset(p)}
-              className="hover:bg-primary/10 hover:text-primary transition-colors"
+              className="text-xs h-7 px-2.5 hover:bg-primary/10 hover:text-primary transition-colors"
             >
               {p.label}
             </Button>
           ))}
         </div>
-        <div className="flex flex-wrap gap-4 items-center">
+        <div className="flex flex-wrap gap-3 items-center">
           <div>
-            <label className="block text-sm text-muted-foreground mb-1">Desde</label>
+            <label className="block text-xs text-muted-foreground mb-1">Desde</label>
             <Select value={startMonth} onValueChange={onStartChange}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-[140px] h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -90,9 +90,9 @@ export default function PeriodSelector({
             </Select>
           </div>
           <div>
-            <label className="block text-sm text-muted-foreground mb-1">Hasta</label>
+            <label className="block text-xs text-muted-foreground mb-1">Hasta</label>
             <Select value={endMonth} onValueChange={onEndChange}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-[140px] h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

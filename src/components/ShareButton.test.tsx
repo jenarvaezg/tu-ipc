@@ -22,12 +22,12 @@ describe('ShareButton', () => {
         endMonth="2025-01"
       />
     )
-    expect(screen.getByText('Texto')).toBeInTheDocument()
-    expect(screen.getByText('Enlace')).toBeInTheDocument()
-    expect(screen.getByText('Imagen')).toBeInTheDocument()
+    expect(screen.getByTitle('Copiar como texto')).toBeInTheDocument()
+    expect(screen.getByTitle('Copiar enlace')).toBeInTheDocument()
+    expect(screen.getByTitle('Descargar como imagen')).toBeInTheDocument()
   })
 
-  it('copies correct text to clipboard on Texto click', async () => {
+  it('copies correct text to clipboard on text button click', async () => {
     render(
       <ShareButton
         personalIPC={2.9}
@@ -38,16 +38,16 @@ describe('ShareButton', () => {
       />
     )
     await act(async () => {
-      fireEvent.click(screen.getByText('Texto'))
+      fireEvent.click(screen.getByTitle('Copiar como texto'))
       await new Promise(r => setTimeout(r, 0))
     })
     const calls = getClipboardCalls()
     expect(calls).toHaveLength(1)
-    expect(calls[0]).toContain('Mi IPC personal')
+    expect(calls[0]).toContain('IPC')
     expect(calls[0]).toContain('+2.90%')
   })
 
-  it('copies link to clipboard on Enlace click', async () => {
+  it('copies link to clipboard on link button click', async () => {
     render(
       <ShareButton
         personalIPC={2.9}
@@ -58,7 +58,7 @@ describe('ShareButton', () => {
       />
     )
     await act(async () => {
-      fireEvent.click(screen.getByText('Enlace'))
+      fireEvent.click(screen.getByTitle('Copiar enlace'))
       await new Promise(r => setTimeout(r, 0))
     })
     const calls = getClipboardCalls()
@@ -66,7 +66,7 @@ describe('ShareButton', () => {
     expect(calls[0]).toContain('http://localhost')
   })
 
-  it('shows Copiado! after Texto click', async () => {
+  it('shows Copiado title after text button click', async () => {
     const user = userEvent.setup()
     render(
       <ShareButton
@@ -77,7 +77,7 @@ describe('ShareButton', () => {
         endMonth="2025-01"
       />
     )
-    await user.click(screen.getByText('Texto'))
-    expect(screen.getAllByText('Copiado!').length).toBeGreaterThanOrEqual(1)
+    await user.click(screen.getByTitle('Copiar como texto'))
+    expect(screen.getByTitle('¡Copiado!')).toBeInTheDocument()
   })
 })

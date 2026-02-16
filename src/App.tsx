@@ -234,7 +234,20 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <Header lastUpdated={ipcData.lastUpdated} onMethodology={() => setPage('methodology')} />
+        <div className="relative">
+          <Header lastUpdated={ipcData.lastUpdated} onMethodology={() => setPage('methodology')} />
+          <div className="absolute right-0 top-12 md:top-0">
+            <ShareButton
+              personalIPC={result.personalIPC}
+              officialIPC={result.officialIPC}
+              difference={result.difference}
+              startMonth={startMonth}
+              endMonth={endMonth}
+              region={region}
+              isCustom={isCustom}
+            />
+          </div>
+        </div>
         <KPICards
           personalIPC={result.personalIPC}
           officialIPC={result.officialIPC}
@@ -250,17 +263,6 @@ export default function App() {
           onStartChange={setStartMonth}
           onEndChange={setEndMonth}
         />
-        <div className="text-center mb-6">
-          <ShareButton
-            personalIPC={result.personalIPC}
-            officialIPC={result.officialIPC}
-            difference={result.difference}
-            startMonth={startMonth}
-            endMonth={endMonth}
-            region={region}
-            isCustom={isCustom}
-          />
-        </div>
         <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
         {activeTab === 'evolucion' && (
           <>
