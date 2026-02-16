@@ -258,6 +258,8 @@ export default function App() {
           difference={result.difference}
           comparisons={comparisonResults.map(c => ({ label: c.label, ipc: c.result.personalIPC }))}
           isCustom={isCustom}
+          startMonth={startMonth}
+          endMonth={endMonth}
         />
         <RegionSelector value={region} onChange={handleRegionChange} />
         <PeriodSelector

@@ -18,12 +18,38 @@ interface KPICardsProps {
   difference: number
   comparisons?: ComparisonKPI[]
   isCustom?: boolean
+  startMonth: string
+  endMonth: string
 }
 
-export default function KPICards({ personalIPC, officialIPC, difference, comparisons = [], isCustom = true }: KPICardsProps) {
+function monthsDiff(start: string, end: string): number {
+  const [sy, sm] = start.split('-').map(Number)
+  const [ey, em] = end.split('-').map(Number)
+  return (ey - sy) * 12 + (em - sm)
+}
+
+function halvingYears(rate: number, months: number): number | null {
+  if (rate <= 0 || months <= 0) return null
+  const annualRate = Math.pow(1 + rate / 100, 12 / months) - 1
+  if (annualRate <= 0) return null
+  return Math.log(2) / Math.log(1 + annualRate)
+}
+
+function formatHalving(years: number | null): string | null {
+  if (years == null || years > 200) return null
+  if (years >= 1) return `${Math.round(years)} años`
+  const months = Math.round(years * 12)
+  return months <= 1 ? '1 mes' : `${months} meses`
+}
+
+export default function KPICards({ personalIPC, officialIPC, difference, comparisons = [], isCustom = true, startMonth, endMonth }: KPICardsProps) {
   const personalColor = personalIPC >= 0 ? 'text-rose-400' : 'text-emerald-400'
   const officialColor = officialIPC >= 0 ? 'text-rose-400' : 'text-emerald-400'
   const diffColor = difference >= 0 ? 'text-rose-400' : 'text-emerald-400'
+
+  const months = monthsDiff(startMonth, endMonth)
+  const personalHalving = formatHalving(halvingYears(personalIPC, months))
+  const officialHalving = formatHalving(halvingYears(officialIPC, months))
 
   const diffText =
     difference > 0
@@ -48,6 +74,11 @@ export default function KPICards({ personalIPC, officialIPC, difference, compari
             <p className={`text-3xl font-bold ${personalColor}`}>
               {personalIPC >= 0 ? '+' : ''}{personalIPC.toFixed(2)}%
             </p>
+            {personalHalving && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Tu dinero vale la mitad en ~{personalHalving}
+              </p>
+            )}
           </CardContent>
         </Card>
       )}
@@ -57,7 +88,12 @@ export default function KPICards({ personalIPC, officialIPC, difference, compari
           <p className={`text-3xl font-bold ${officialColor}`}>
             {officialIPC >= 0 ? '+' : ''}{officialIPC.toFixed(2)}%
           </p>
-          {!isCustom && (
+          {officialHalving && (
+            <p className="text-xs text-muted-foreground mt-2">
+              {isCustom ? 'El dinero' : 'Tu dinero'} vale la mitad en ~{officialHalving}
+            </p>
+          )}
+          {!isCustom && !officialHalving && (
             <p className="text-xs text-muted-foreground mt-2">
               Personaliza tus pesos para calcular tu IPC
             </p>
