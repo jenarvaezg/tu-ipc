@@ -33,9 +33,10 @@ export default function ShareButton({
 
     try {
       const { toPng } = await import('html-to-image')
+      const isDark = document.documentElement.classList.contains('dark')
       const dataUrl = await toPng(target, {
         pixelRatio: 2,
-        backgroundColor: '#ffffff',
+        backgroundColor: isDark ? '#09090b' : '#ffffff',
       })
 
       const res = await fetch(dataUrl)

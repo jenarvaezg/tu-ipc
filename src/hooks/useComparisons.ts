@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
-import { computeIPC } from '@/hooks/useIPCCalculator'
+import { computeIPC, computeYoY } from '@/hooks/useIPCCalculator'
 import { PRESETS } from '@/data/presets'
 import type { IPCCategory, IPCData } from '@/data/types'
 import ipcDataRaw from '@/data/ipc-data.json'
@@ -28,6 +28,7 @@ export function useComparisons(
         id,
         label: showRegion ? `${preset.name} (${regionName})` : preset.name,
         result: computeIPC(regionCategories, months, preset.weights, startMonth, endMonth),
+        yoyEvolution: computeYoY(regionCategories, months, preset.weights, startMonth, endMonth),
       }
     }).filter((x): x is NonNullable<typeof x> => x !== null)
   }, [comparisonIds, regionCategories, months, startMonth, endMonth, regionName, comparisonRegions.length])
@@ -40,6 +41,7 @@ export function useComparisons(
         id: regionCode,
         label: regData.name,
         result: computeIPC(regData.categories, months, weights, startMonth, endMonth),
+        yoyEvolution: computeYoY(regData.categories, months, weights, startMonth, endMonth),
       }
     }).filter((x): x is NonNullable<typeof x> => x !== null)
   }, [comparisonRegions, months, weights, startMonth, endMonth])

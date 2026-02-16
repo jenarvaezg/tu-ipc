@@ -19,6 +19,7 @@ import { HISTORICAL_EVENTS } from '@/data/historicalEvents'
 interface ComparisonSeries {
   label: string
   data: { month: string; personal: number; official: number }[]
+  yoyData?: { month: string; personal: number; official: number }[]
 }
 
 interface EvolutionChartProps {
@@ -54,14 +55,13 @@ const EvolutionChart = forwardRef<HTMLDivElement, EvolutionChartProps>(function 
     )
   }
 
-  // Merge comparison data into chart data (only in acumulado mode)
+  // Merge comparison data into chart data
   const chartData = activeData.map((d, i) => {
     const row: Record<string, unknown> = { ...d }
-    if (mode === 'acumulado') {
-      comparisons.forEach((comp, ci) => {
-        row[`comp_${ci}`] = comp.data[i]?.personal ?? null
-      })
-    }
+    comparisons.forEach((comp, ci) => {
+      const compSource = mode === 'interanual' && comp.yoyData ? comp.yoyData : comp.data
+      row[`comp_${ci}`] = compSource[i]?.personal ?? null
+    })
     return row
   })
 
@@ -70,11 +70,9 @@ const EvolutionChart = forwardRef<HTMLDivElement, EvolutionChartProps>(function 
     personal: 'Tu IPC personal',
     official: 'IPC oficial',
   }
-  if (mode === 'acumulado') {
-    comparisons.forEach((comp, ci) => {
-      labelMap[`comp_${ci}`] = comp.label
-    })
-  }
+  comparisons.forEach((comp, ci) => {
+    labelMap[`comp_${ci}`] = comp.label
+  })
 
   return (
     <Card ref={ref} className="mb-8">
@@ -184,7 +182,7 @@ const EvolutionChart = forwardRef<HTMLDivElement, EvolutionChartProps>(function 
               dot={false}
               activeDot={{ r: isCustom ? 4 : 5 }}
             />
-            {mode === 'acumulado' && comparisons.map((_, ci) => (
+            {comparisons.map((_, ci) => (
               <Line
                 key={`comp_${ci}`}
                 type="monotone"

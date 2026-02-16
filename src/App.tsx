@@ -258,7 +258,7 @@ export default function App() {
                 ref={chartRef}
                 data={result.evolution}
                 yoyData={yoyEvolution}
-                comparisons={allComparisons.map(c => ({ label: c.label, data: c.result.evolution }))}
+                comparisons={allComparisons.map(c => ({ label: c.label, data: c.result.evolution, yoyData: c.yoyEvolution }))}
                 isCustom={isCustom}
               />
             </Suspense>
