@@ -110,16 +110,24 @@ export default function KPICards({ personalIPC, officialIPC, difference, compari
           </CardContent>
         </Card>
       )}
-      {comparisons.map((comp, i) => (
-        <Card key={comp.label} className="animate-slide-up" style={{ animationDelay: `${0.2 + i * 0.05}s` }}>
-          <CardContent className="pt-6 text-center">
-            <p className="text-sm font-medium text-muted-foreground mb-1">{comp.label}</p>
-            <p className="text-3xl font-bold" style={{ color: COMPARISON_COLORS[i % COMPARISON_COLORS.length] }}>
-              {comp.ipc >= 0 ? '+' : ''}{comp.ipc.toFixed(2)}%
-            </p>
-          </CardContent>
-        </Card>
-      ))}
+      {comparisons.map((comp, i) => {
+        const compHalving = formatHalving(halvingYears(comp.ipc, months))
+        return (
+          <Card key={comp.label} className="animate-slide-up" style={{ animationDelay: `${0.2 + i * 0.05}s` }}>
+            <CardContent className="pt-6 text-center">
+              <p className="text-sm font-medium text-muted-foreground mb-1">{comp.label}</p>
+              <p className="text-3xl font-bold" style={{ color: COMPARISON_COLORS[i % COMPARISON_COLORS.length] }}>
+                {comp.ipc >= 0 ? '+' : ''}{comp.ipc.toFixed(2)}%
+              </p>
+              {compHalving && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  El dinero vale la mitad en ~{compHalving}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        )
+      })}
     </div>
   )
 }

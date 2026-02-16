@@ -113,16 +113,18 @@ export default function App() {
   const result = useIPCCalculator(regionCategories, months, weights, startMonth, endMonth)
 
   const comparisonResults = useMemo(() => {
+    const regionName = regionData?.name
+    const showRegion = comparisonRegions.length > 0 && regionName
     return comparisonIds.map(id => {
       const preset = PRESETS.find(p => p.id === id)
       if (!preset) return null
       return {
         id,
-        label: preset.name,
+        label: showRegion ? `${preset.name} (${regionName})` : preset.name,
         result: computeIPC(regionCategories, months, preset.weights, startMonth, endMonth),
       }
     }).filter((x): x is NonNullable<typeof x> => x !== null)
-  }, [comparisonIds, regionCategories, months, startMonth, endMonth])
+  }, [comparisonIds, regionCategories, months, startMonth, endMonth, regionData, comparisonRegions.length])
 
   const regionComparisonResults = useMemo(() => {
     return comparisonRegions.map(regionCode => {
