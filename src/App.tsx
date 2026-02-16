@@ -1,53 +1,41 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import ipcDataRaw from '@/data/ipc-data.json'
 import type { IPCData } from '@/data/types'
-import { CATEGORIES, OFFICIAL_WEIGHTS } from '@/data/categories'
-import { useIPCCalculator, computeIPC } from '@/hooks/useIPCCalculator'
+import { useIPCCalculator, computeYoY } from '@/hooks/useIPCCalculator'
 import { parseURLState, syncToURL } from '@/hooks/useURLState'
+import { useWeights } from '@/hooks/useWeights'
+import { useComparisons } from '@/hooks/useComparisons'
+import { debounce } from '@/utils/debounce'
 import Header from '@/components/Header'
 import KPICards from '@/components/KPICards'
 import RegionSelector from '@/components/RegionSelector'
 import PeriodSelector from '@/components/PeriodSelector'
 import TabNavigation from '@/components/TabNavigation'
-import EvolutionChart from '@/components/EvolutionChart'
 import WeightSliders from '@/components/WeightSliders'
 import CategoryBreakdown from '@/components/CategoryBreakdown'
 import PresetSelector from '@/components/PresetSelector'
 import ShareButton from '@/components/ShareButton'
+import CopyLinkButton from '@/components/CopyLinkButton'
+import NarrativeSummary from '@/components/NarrativeSummary'
+import ShareSuggestion from '@/components/ShareSuggestion'
 import Footer from '@/components/Footer'
-import Methodology from '@/components/Methodology'
-import SalaryCalculator from '@/components/SalaryCalculator'
 import ComparisonToggle from '@/components/ComparisonToggle'
 import RegionComparison from '@/components/RegionComparison'
 import LandingPage from '@/components/LandingPage'
-import { PRESETS } from '@/data/presets'
+
+const EvolutionChart = lazy(() => import('@/components/EvolutionChart'))
+const Methodology = lazy(() => import('@/components/Methodology'))
+const SalaryCalculator = lazy(() => import('@/components/SalaryCalculator'))
+const RegionRanking = lazy(() => import('@/components/RegionRanking'))
 
 const ipcData = ipcDataRaw as IPCData
 
-const STORAGE_KEY = 'tu-ipc-weights'
-const STORAGE_KEY_LOCKED = 'tu-ipc-locked'
+const isEmbed = new URLSearchParams(window.location.search).get('embed') === '1'
+
 const STORAGE_KEY_REGION = 'tu-ipc-region'
 
-function loadWeights(): Record<string, number> {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) {
-      const parsed = JSON.parse(saved)
-      if (typeof parsed === 'object' && parsed !== null) return parsed
-    }
-  } catch { /* ignore */ }
-  return { ...OFFICIAL_WEIGHTS }
-}
-
-function loadLocked(): Set<string> {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY_LOCKED)
-    if (saved) {
-      const parsed = JSON.parse(saved)
-      if (Array.isArray(parsed)) return new Set(parsed)
-    }
-  } catch { /* ignore */ }
-  return new Set()
+function LazyFallback() {
+  return <div className="h-32 flex items-center justify-center text-muted-foreground text-sm">Cargando...</div>
 }
 
 function loadRegion(): string {
@@ -56,14 +44,6 @@ function loadRegion(): string {
     if (saved && ipcData.regions[saved]) return saved
   } catch { /* ignore */ }
   return 'nacional'
-}
-
-function saveWeights(weights: Record<string, number>) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(weights))
-}
-
-function saveLocked(locked: Set<string>) {
-  localStorage.setItem(STORAGE_KEY_LOCKED, JSON.stringify([...locked]))
 }
 
 function saveRegion(region: string) {
@@ -83,10 +63,16 @@ export default function App() {
 
   const [showLanding, setShowLanding] = useState(() => !hasSharedParams)
 
-  const [weights, setWeights] = useState<Record<string, number>>(
-    () => urlState.weights || loadWeights()
-  )
-  const [locked, setLocked] = useState<Set<string>>(loadLocked)
+  const {
+    weights,
+    locked,
+    isCustom,
+    handleWeightChange,
+    handleToggleLock,
+    handleReset,
+    handlePresetSelect,
+  } = useWeights(urlState.weights)
+
   const [region, setRegion] = useState(
     () => urlState.region && ipcData.regions[urlState.region] ? urlState.region : loadRegion()
   )
@@ -102,145 +88,44 @@ export default function App() {
       : months[months.length - 1]
   )
   const [activeTab, setActiveTab] = useState(urlState.activeTab || 'evolucion')
-  const [comparisonIds, setComparisonIds] = useState<string[]>(urlState.comparisonIds || [])
-  const [comparisonRegions, setComparisonRegions] = useState<string[]>(urlState.comparisonRegions || [])
 
   const chartRef = useRef<HTMLDivElement>(null)
 
   const regionData = ipcData.regions[region]
   const regionCategories = regionData?.categories ?? {}
+  const generalIndex = regionCategories['00']
 
-  const result = useIPCCalculator(regionCategories, months, weights, startMonth, endMonth)
+  const result = useIPCCalculator(regionCategories, months, weights, startMonth, endMonth, generalIndex)
 
-  const comparisonResults = useMemo(() => {
-    const regionName = regionData?.name
-    const showRegion = comparisonRegions.length > 0 && regionName
-    return comparisonIds.map(id => {
-      const preset = PRESETS.find(p => p.id === id)
-      if (!preset) return null
-      return {
-        id,
-        label: showRegion ? `${preset.name} (${regionName})` : preset.name,
-        result: computeIPC(regionCategories, months, preset.weights, startMonth, endMonth),
-      }
-    }).filter((x): x is NonNullable<typeof x> => x !== null)
-  }, [comparisonIds, regionCategories, months, startMonth, endMonth, regionData, comparisonRegions.length])
+  const yoyEvolution = useMemo(
+    () => computeYoY(regionCategories, months, weights, startMonth, endMonth, generalIndex),
+    [regionCategories, months, weights, startMonth, endMonth, generalIndex]
+  )
 
-  const regionComparisonResults = useMemo(() => {
-    return comparisonRegions.map(regionCode => {
-      const regData = ipcData.regions[regionCode]
-      if (!regData) return null
-      return {
-        id: regionCode,
-        label: regData.name,
-        result: computeIPC(regData.categories, months, weights, startMonth, endMonth),
-      }
-    }).filter((x): x is NonNullable<typeof x> => x !== null)
-  }, [comparisonRegions, months, weights, startMonth, endMonth])
-
-  const allComparisons = useMemo(() => {
-    return [...comparisonResults, ...regionComparisonResults].slice(0, 4)
-  }, [comparisonResults, regionComparisonResults])
-
-  const handleToggleComparison = useCallback((presetId: string) => {
-    setComparisonIds(prev =>
-      prev.includes(presetId)
-        ? prev.filter(id => id !== presetId)
-        : [...prev, presetId]
-    )
-  }, [])
-
-  const handleClearComparisons = useCallback(() => {
-    setComparisonIds([])
-  }, [])
-
-  const handleToggleRegionComparison = useCallback((regionCode: string) => {
-    setComparisonRegions(prev =>
-      prev.includes(regionCode) ? prev.filter(r => r !== regionCode) : [...prev, regionCode]
-    )
-  }, [])
-
-  const handleClearRegionComparisons = useCallback(() => {
-    setComparisonRegions([])
-  }, [])
+  const {
+    comparisonIds,
+    comparisonRegions,
+    regionComparisonResults,
+    allComparisons,
+    handleToggleComparison,
+    handleClearComparisons,
+    handleToggleRegionComparison,
+    handleClearRegionComparisons,
+  } = useComparisons(
+    regionCategories,
+    regionData?.name,
+    months,
+    weights,
+    startMonth,
+    endMonth,
+    urlState.comparisonIds,
+    urlState.comparisonRegions
+  )
 
   const handleRegionChange = useCallback((code: string) => {
     setRegion(code)
     saveRegion(code)
-    // Remove from region comparisons if user switches to it
-    setComparisonRegions(prev => prev.filter(r => r !== code))
   }, [])
-
-  const handleWeightChange = useCallback((code: string, newValue: number) => {
-    setWeights((prev) => {
-      const oldValue = prev[code] || 0
-      const delta = newValue - oldValue
-
-      // Find unlocked categories (excluding the one being changed)
-      const adjustable = CATEGORIES
-        .filter((c) => c.code !== code && !locked.has(c.code))
-        .map((c) => c.code)
-
-      if (adjustable.length === 0) return prev
-
-      // Distribute -delta proportionally among adjustable categories
-      const adjustableTotal = adjustable.reduce((sum, c) => sum + (prev[c] || 0), 0)
-      const next = { ...prev, [code]: Math.max(0, Math.min(100, newValue)) }
-
-      if (adjustableTotal > 0) {
-        for (const c of adjustable) {
-          const share = (prev[c] || 0) / adjustableTotal
-          next[c] = Math.max(0, (prev[c] || 0) - delta * share)
-        }
-      } else {
-        // All adjustable are at 0, distribute equally
-        const each = -delta / adjustable.length
-        for (const c of adjustable) {
-          next[c] = Math.max(0, each)
-        }
-      }
-
-      saveWeights(next)
-      return next
-    })
-  }, [locked])
-
-  const handleToggleLock = useCallback((code: string) => {
-    setLocked((prev) => {
-      const next = new Set(prev)
-      if (next.has(code)) {
-        next.delete(code)
-      } else {
-        next.add(code)
-      }
-      saveLocked(next)
-      return next
-    })
-  }, [])
-
-  const handleReset = useCallback((type: 'official' | 'equal') => {
-    const next =
-      type === 'official'
-        ? { ...OFFICIAL_WEIGHTS }
-        : Object.fromEntries(CATEGORIES.map((c) => [c.code, +(100 / 12).toFixed(2)]))
-    setWeights(next)
-    saveWeights(next)
-    setLocked(new Set())
-    saveLocked(new Set())
-  }, [])
-
-  const handlePresetSelect = useCallback((presetWeights: Record<string, number>) => {
-    setWeights(presetWeights)
-    saveWeights(presetWeights)
-    setLocked(new Set())
-    saveLocked(new Set())
-  }, [])
-
-  const isCustom = useMemo(() => {
-    return !CATEGORIES.every(
-      cat => Math.abs((weights[cat.code] ?? 0) - (OFFICIAL_WEIGHTS[cat.code] ?? 0)) < 0.01
-    )
-  }, [weights])
 
   const categoryVariations = useMemo(() => {
     const vars: Record<string, number> = {}
@@ -250,19 +135,58 @@ export default function App() {
     return vars
   }, [result.breakdown])
 
+  // Debounced syncToURL
+  const debouncedSyncRef = useRef(debounce(syncToURL, 300))
+
+  useEffect(() => {
+    return () => debouncedSyncRef.current.cancel()
+  }, [])
+
   // Sync state to URL (only when calculator is visible)
   useEffect(() => {
     if (!showLanding) {
-      syncToURL({ weights, startMonth, endMonth, region, activeTab, comparisonIds, comparisonRegions })
+      debouncedSyncRef.current({ weights, startMonth, endMonth, region, activeTab, comparisonIds, comparisonRegions })
     }
   }, [showLanding, weights, startMonth, endMonth, region, activeTab, comparisonIds, comparisonRegions])
 
+  const handleLandingStart = useCallback((quizWeights?: Record<string, number>) => {
+    if (quizWeights) {
+      handlePresetSelect(quizWeights)
+    }
+    setShowLanding(false)
+  }, [handlePresetSelect])
+
   if (showLanding) {
-    return <LandingPage onStart={() => setShowLanding(false)} />
+    return <LandingPage onStart={handleLandingStart} />
   }
 
   if (page === 'methodology') {
-    return <Methodology onBack={() => setPage('calculator')} />
+    return (
+      <Suspense fallback={<LazyFallback />}>
+        <Methodology onBack={() => setPage('calculator')} />
+      </Suspense>
+    )
+  }
+
+  if (isEmbed) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-4">
+        <KPICards
+          personalIPC={result.personalIPC}
+          officialIPC={result.officialIPC}
+          difference={result.difference}
+          isCustom={isCustom}
+          startMonth={startMonth}
+          endMonth={endMonth}
+        />
+        <Suspense fallback={<LazyFallback />}>
+          <EvolutionChart
+            data={result.evolution}
+            isCustom={isCustom}
+          />
+        </Suspense>
+      </div>
+    )
   }
 
   return (
@@ -272,16 +196,19 @@ export default function App() {
           lastUpdated={ipcData.lastUpdated}
           onMethodology={() => setPage('methodology')}
           actions={
-            <ShareButton
-              personalIPC={result.personalIPC}
-              officialIPC={result.officialIPC}
-              difference={result.difference}
-              startMonth={startMonth}
-              endMonth={endMonth}
-              region={region}
-              isCustom={isCustom}
-              chartRef={chartRef}
-            />
+            <div className="flex items-center gap-1">
+              <CopyLinkButton />
+              <ShareButton
+                personalIPC={result.personalIPC}
+                officialIPC={result.officialIPC}
+                difference={result.difference}
+                startMonth={startMonth}
+                endMonth={endMonth}
+                region={region}
+                isCustom={isCustom}
+                chartRef={chartRef}
+              />
+            </div>
           }
         />
         <KPICards
@@ -293,6 +220,16 @@ export default function App() {
           startMonth={startMonth}
           endMonth={endMonth}
         />
+        {isCustom && (
+          <NarrativeSummary
+            breakdown={result.breakdown}
+            personalIPC={result.personalIPC}
+            difference={result.difference}
+            startMonth={startMonth}
+            endMonth={endMonth}
+          />
+        )}
+        <ShareSuggestion difference={result.difference} isCustom={isCustom} />
         <RegionSelector value={region} onChange={handleRegionChange} />
         <PeriodSelector
           months={months}
@@ -316,12 +253,15 @@ export default function App() {
               onClear={handleClearRegionComparisons}
               maxComparisons={4 - allComparisons.length + regionComparisonResults.length}
             />
-            <EvolutionChart
-              ref={chartRef}
-              data={result.evolution}
-              comparisons={allComparisons.map(c => ({ label: c.label, data: c.result.evolution }))}
-              isCustom={isCustom}
-            />
+            <Suspense fallback={<LazyFallback />}>
+              <EvolutionChart
+                ref={chartRef}
+                data={result.evolution}
+                yoyData={yoyEvolution}
+                comparisons={allComparisons.map(c => ({ label: c.label, data: c.result.evolution }))}
+                isCustom={isCustom}
+              />
+            </Suspense>
           </div>
         )}
         {activeTab === 'desglose' && (
@@ -340,11 +280,26 @@ export default function App() {
         )}
         {activeTab === 'sueldo' && (
           <div role="tabpanel" id="sueldo-panel" aria-labelledby="sueldo-tab">
-            <SalaryCalculator
-              personalIPC={result.personalIPC}
-              startMonth={startMonth}
-              endMonth={endMonth}
-            />
+            <Suspense fallback={<LazyFallback />}>
+              <SalaryCalculator
+                personalIPC={result.personalIPC}
+                startMonth={startMonth}
+                endMonth={endMonth}
+              />
+            </Suspense>
+          </div>
+        )}
+        {activeTab === 'regiones' && (
+          <div role="tabpanel" id="regiones-panel" aria-labelledby="regiones-tab">
+            <Suspense fallback={<LazyFallback />}>
+              <RegionRanking
+                ipcData={ipcData}
+                weights={weights}
+                startMonth={startMonth}
+                endMonth={endMonth}
+                currentRegion={region}
+              />
+            </Suspense>
           </div>
         )}
         <Footer onMethodology={() => setPage('methodology')} />

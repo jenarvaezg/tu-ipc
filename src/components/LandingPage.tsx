@@ -2,17 +2,36 @@ import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowRight, BarChart3, TrendingUp, Share2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import OnboardingQuiz from '@/components/OnboardingQuiz'
 
 interface LandingPageProps {
-  onStart: () => void
+  onStart: (weights?: Record<string, number>) => void
 }
 
 export default function LandingPage({ onStart }: LandingPageProps) {
   const [isVisible, setIsVisible] = useState(false)
+  const [showQuiz, setShowQuiz] = useState(false)
 
   useEffect(() => {
     setIsVisible(true)
   }, [])
+
+  if (showQuiz) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="max-w-5xl mx-auto px-4 py-16">
+          <h2 className="text-3xl font-bold text-center mb-2">Descubre tu perfil</h2>
+          <p className="text-center text-muted-foreground mb-8">
+            5 preguntas rápidas para personalizar tu IPC
+          </p>
+          <OnboardingQuiz
+            onComplete={(weights) => onStart(weights)}
+            onSkip={() => onStart()}
+          />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -45,11 +64,19 @@ export default function LandingPage({ onStart }: LandingPageProps) {
             <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
               <Button
                 size="lg"
-                onClick={onStart}
+                onClick={() => setShowQuiz(true)}
                 className="text-base px-8 py-5 h-auto font-semibold shadow-lg hover:shadow-xl transition-all"
               >
-                Calcular mi IPC
+                Descubre tu IPC
                 <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => onStart()}
+                className="text-base px-8 py-5 h-auto"
+              >
+                Saltar al calculador
               </Button>
             </div>
           </div>
@@ -152,7 +179,7 @@ export default function LandingPage({ onStart }: LandingPageProps) {
           <div className="text-center mt-12">
             <Button
               size="lg"
-              onClick={onStart}
+              onClick={() => setShowQuiz(true)}
               className="text-base px-10 py-5 h-auto font-semibold shadow-lg hover:shadow-xl transition-all"
             >
               Empieza ahora

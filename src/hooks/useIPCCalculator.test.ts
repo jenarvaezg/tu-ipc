@@ -24,6 +24,15 @@ const mockCategories: Record<string, IPCCategory> = {
 
 const months = ['2024-01', '2024-06', '2024-12']
 
+const mockGeneralIndex: IPCCategory = {
+  name: 'Índice general',
+  data: {
+    '2024-01': 100,
+    '2024-06': 102,
+    '2024-12': 104,
+  },
+}
+
 describe('useIPCCalculator', () => {
   it('returns zero when start equals end', () => {
     const { result } = renderHook(() =>
@@ -91,5 +100,16 @@ describe('useIPCCalculator', () => {
     )
     // 2023-01 doesn't exist in data, base is undefined → should skip
     expect(result.current.personalIPC).toBe(0)
+  })
+
+  it('uses general index for official IPC when provided', () => {
+    const weights = { '01': 80, '07': 20 }
+    const { result } = renderHook(() =>
+      useIPCCalculator(mockCategories, months, weights, '2024-01', '2024-12', mockGeneralIndex)
+    )
+    // Official should be (104-100)/100 * 100 = 4%
+    expect(result.current.officialIPC).toBe(4)
+    // Personal should still be weighted: 0.8*5 + 0.2*2 = 4.4%
+    expect(result.current.personalIPC).toBe(4.4)
   })
 })

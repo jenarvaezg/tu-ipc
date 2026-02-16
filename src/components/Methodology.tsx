@@ -281,9 +281,9 @@ const elegida = sorted[0] // Más larga = v1`}
             </li>
           </ul>
           <p className="text-sm text-muted-foreground/70">
-            Nota: nuestro cálculo del "IPC oficial" es una aproximación. El INE usa una
-            metodología más compleja con ponderaciones encadenadas que se actualizan anualmente.
-            Los resultados pueden diferir ligeramente del dato publicado.
+            Cuando está disponible el índice general (categoría "00"), se usa directamente como
+            IPC oficial, lo que proporciona un valor exacto. En caso contrario, se calcula
+            como media ponderada con los pesos oficiales del INE.
           </p>
         </Section>
 

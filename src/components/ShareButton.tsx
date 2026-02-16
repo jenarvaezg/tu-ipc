@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback, type RefObject } from 'react'
-import { toPng } from 'html-to-image'
 import { Button } from '@/components/ui/button'
 import { Share2, Loader2, Check } from 'lucide-react'
 import ShareCard from '@/components/ShareCard'
@@ -33,6 +32,7 @@ export default function ShareButton({
     setState('generating')
 
     try {
+      const { toPng } = await import('html-to-image')
       const dataUrl = await toPng(target, {
         pixelRatio: 2,
         backgroundColor: '#ffffff',

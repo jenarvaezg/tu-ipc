@@ -9,6 +9,7 @@ interface SalaryInputs {
   before: string
   after: string
   payType: PayType
+  convention: string
 }
 
 function loadSalaryInputs(): SalaryInputs {
@@ -19,7 +20,7 @@ function loadSalaryInputs(): SalaryInputs {
       if (parsed && parsed.before !== undefined) return parsed
     }
   } catch { /* ignore */ }
-  return { before: '', after: '', payType: '12' }
+  return { before: '', after: '', payType: '12', convention: '' }
 }
 
 function saveSalaryInputs(inputs: SalaryInputs) {
@@ -43,6 +44,7 @@ export default function SalaryCalculator({ personalIPC, startMonth, endMonth }: 
 
   const salaryBefore = parseFloat(inputs.before) || 0
   const salaryAfter = parseFloat(inputs.after) || 0
+  const conventionRate = parseFloat(inputs.convention) || 0
 
   const result = useSalaryComparison(salaryBefore, salaryAfter, inputs.payType, personalIPC)
 
@@ -125,6 +127,29 @@ export default function SalaryCalculator({ personalIPC, startMonth, endMonth }: 
               </div>
             </div>
           </div>
+
+          {/* Convention input */}
+          <div>
+            <label htmlFor="convention-rate" className="block text-sm font-medium text-muted-foreground mb-1">
+              Subida pactada en convenio (%)
+            </label>
+            <div className="relative">
+              <input
+                id="convention-rate"
+                type="text"
+                inputMode="decimal"
+                value={inputs.convention}
+                onChange={e => {
+                  const v = e.target.value
+                  if (v && !/^\d*\.?\d*$/.test(v)) return
+                  setInputs(prev => ({ ...prev, convention: v }))
+                }}
+                placeholder="2.5"
+                className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 pr-8"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -167,6 +192,24 @@ export default function SalaryCalculator({ personalIPC, startMonth, endMonth }: 
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {conventionRate > 0 && (
+        <Card className="animate-slide-up" style={{ animationDelay: '0.25s' }}>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Tu convenio vs tu inflación</p>
+              <p className={`text-2xl font-bold ${conventionRate >= personalIPC ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {conventionRate >= personalIPC ? '+' : ''}{(conventionRate - personalIPC).toFixed(2)} pp
+              </p>
+              <p className={`text-xs mt-1 ${conventionRate >= personalIPC ? 'text-emerald-400' : 'text-rose-400'}`}>
+                {conventionRate >= personalIPC
+                  ? 'Tu convenio cubre tu inflación personal'
+                  : `Tu convenio sube ${conventionRate.toFixed(1)}% pero tu inflación es ${personalIPC.toFixed(1)}%`}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {!result && (salaryBefore > 0 || salaryAfter > 0) && (

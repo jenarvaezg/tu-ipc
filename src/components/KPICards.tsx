@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { COMPARISON_COLORS } from '@/data/constants'
+import { formatMonth } from '@/utils/formatMonth'
 
 interface ComparisonKPI {
   label: string
@@ -65,7 +66,8 @@ export default function KPICards({ personalIPC, officialIPC, difference, compari
   const gridCols = GRID_CLASSES[Math.min(totalCards, 6)] || 'md:grid-cols-3'
 
   return (
-    <div className={`grid grid-cols-1 ${gridCols} gap-4 mb-8`}>
+    <>
+    <div className={`grid grid-cols-1 ${gridCols} gap-4 mb-4`}>
       {isCustom && (
         <Card className="animate-slide-up" style={{ animationDelay: '0.05s' }}>
           <CardContent className="pt-6 text-center">
@@ -129,5 +131,12 @@ export default function KPICards({ personalIPC, officialIPC, difference, compari
         )
       })}
     </div>
+    <p className="text-center text-sm text-muted-foreground mb-8">
+      Una cesta de compra de 1.000€ de {formatMonth(startMonth)} hoy costaría{' '}
+      <span className={`font-semibold ${personalIPC >= 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
+        {(1000 * (1 + personalIPC / 100)).toFixed(0)}€
+      </span>
+    </p>
+    </>
   )
 }

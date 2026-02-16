@@ -9,6 +9,7 @@ const TABS = [
   { id: 'evolucion', label: 'Evolución' },
   { id: 'desglose', label: 'Desglose' },
   { id: 'sueldo', label: 'Tu Sueldo' },
+  { id: 'regiones', label: 'Regiones' },
 ]
 
 export default function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {

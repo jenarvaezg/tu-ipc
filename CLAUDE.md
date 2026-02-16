@@ -25,23 +25,39 @@ Personal IPC calculator: users adjust 12 ECOICOP spending category weights to co
 
 **Data flow:**
 1. `scripts/download-ine-data.mjs` fetches from INE API → writes `src/data/ipc-data.json` (static, bundled)
-2. `useIPCCalculator` hook computes weighted variations from the JSON data
-3. `App.tsx` owns all state (weights, locked set, period) and passes results to presentational components
+2. `useIPCCalculator` hook computes weighted variations from the JSON data. Uses category "00" (general index) for official IPC when available.
+3. `App.tsx` orchestrates state via extracted hooks (`useWeights`, `useComparisons`) and passes results to presentational components. Heavy components (EvolutionChart, Methodology, SalaryCalculator, RegionRanking) are lazy-loaded.
 
 **Key design decisions:**
 - **Static data bundle** — INE API lacks CORS headers, so data is pre-downloaded and shipped as JSON
 - **ECOICOP v1 vs v2** — INE publishes overlapping series with incompatible bases. The download script groups series by category and picks the longest (always v1, base 2021=100). Never mix v1/v2 data.
-- **Weight system** — Weights are normalized percentages that sum to 100. Moving one slider redistributes the delta proportionally among unlocked categories. Locked categories hold fixed values.
+- **Weight system** — Weights are normalized percentages that sum to 100. Moving one slider redistributes the delta proportionally among unlocked categories (see `src/utils/weightRedistribution.ts`). Locked categories hold fixed values.
 - **INE timestamps** — Unix milliseconds; must use `getUTCFullYear()`/`getUTCMonth()` to avoid timezone shifts
 - **ErrorBoundary** — Global error boundary in `main.tsx` catches render errors and shows a Spanish fallback UI
+- **Lazy loading** — EvolutionChart, Methodology, SalaryCalculator, RegionRanking use `React.lazy()` with `<Suspense>` for code splitting
+- **Embed mode** — `?embed=1` URL param renders a minimal view with only KPIs and chart (no header, tabs, or controls)
+- **General index** — Category code "00" is the INE general index, used for official IPC when available (more accurate than weighted sum of 12 categories)
 
 **File layout:**
-- `src/App.tsx` — State management hub (weights, locks, period, page routing)
-- `src/hooks/useIPCCalculator.ts` — Pure memoized calculation (variation per category, weighted sum)
+- `src/App.tsx` — State orchestration hub (delegates to useWeights/useComparisons hooks, lazy loads heavy components)
+- `src/hooks/useIPCCalculator.ts` — Pure memoized calculation (variation per category, weighted sum, YoY computation via `computeYoY`)
+- `src/hooks/useWeights.ts` — Weight state management (localStorage persistence, debounced saves, redistribution)
+- `src/hooks/useComparisons.ts` — Comparison state management (profile & region comparisons)
+- `src/hooks/useSalaryComparison.ts` — Salary vs inflation comparison (Fisher equation for real growth)
+- `src/utils/weightRedistribution.ts` — Pure function for proportional weight redistribution
+- `src/utils/debounce.ts` — Generic debounce utility with cancel()
+- `src/utils/formatMonth.ts` — Format "2024-01" → "enero 2024"
 - `src/data/categories.ts` — 12 ECOICOP categories with official weights and keyword matchers
 - `src/data/constants.ts` — Shared constants (COMPARISON_COLORS)
+- `src/data/presets.ts` — Weight presets (oficial, 6 lifestyle profiles)
+- `src/data/historicalEvents.ts` — Historical events for chart annotations (COVID, Ukraine, etc.)
 - `src/data/types.ts` — TypeScript interfaces (IPCData, IPCResult, CategoryVariation)
 - `src/components/` — Presentational components (all use shadcn/ui primitives from `ui/`)
+- `src/components/OnboardingQuiz.tsx` — 5-question onboarding wizard to generate personalized weights
+- `src/components/RegionRanking.tsx` — Region ranking by personal IPC (lazy loaded)
+- `src/components/NarrativeSummary.tsx` — Generated text summary of personal inflation
+- `src/components/ShareSuggestion.tsx` — Dismissable share prompt when difference > 1.5pp
+- `src/components/CopyLinkButton.tsx` — Copy current URL to clipboard
 - `src/components/ErrorBoundary.tsx` — Global React error boundary
 - `scripts/download-ine-data.mjs` — INE API download with v1/v2 deduplication
 

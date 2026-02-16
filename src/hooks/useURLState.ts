@@ -46,7 +46,7 @@ export function parseURLState(): URLState {
 
   // Parse tab: t=evolucion
   const t = params.get('t')
-  if (t && ['evolucion', 'desglose', 'sueldo'].includes(t)) {
+  if (t && ['evolucion', 'desglose', 'sueldo', 'regiones'].includes(t)) {
     result.activeTab = t
   }
 

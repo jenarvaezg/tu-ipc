@@ -29,7 +29,7 @@ export function useSalaryComparison(
     const annualAfter = toAnnual(salaryAfter, payType)
 
     const nominalGrowth = ((annualAfter - annualBefore) / annualBefore) * 100
-    const realGrowth = nominalGrowth - personalIPC
+    const realGrowth = ((1 + nominalGrowth / 100) / (1 + personalIPC / 100) - 1) * 100
 
     // Monthly purchasing power change in euros
     // What you'd need to earn monthly to match inflation, vs what you got
