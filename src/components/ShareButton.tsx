@@ -114,16 +114,18 @@ export default function ShareButton({
           {generatingImage ? 'Generando...' : 'Imagen'}
         </Button>
       </div>
-      <ShareCard
-        ref={cardRef}
-        personalIPC={personalIPC}
-        officialIPC={officialIPC}
-        difference={difference}
-        startMonth={startMonth}
-        endMonth={endMonth}
-        region={region}
-        url={window.location.href}
-      />
+      <div style={{ position: 'fixed', top: 0, left: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: -1 }}>
+        <ShareCard
+          ref={cardRef}
+          personalIPC={personalIPC}
+          officialIPC={officialIPC}
+          difference={difference}
+          startMonth={startMonth}
+          endMonth={endMonth}
+          region={region}
+          url={window.location.href}
+        />
+      </div>
     </>
   )
 }
