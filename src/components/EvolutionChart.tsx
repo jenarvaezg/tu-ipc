@@ -158,9 +158,10 @@ const EvolutionChart = forwardRef<HTMLDivElement, EvolutionChartProps>(function 
                   strokeOpacity={0.5}
                   label={{
                     value: event.shortLabel,
-                    position: 'top',
+                    position: 'insideTopRight',
                     fontSize: 10,
                     fill: 'hsl(var(--muted-foreground))',
+                    offset: 4,
                   }}
                 />
               ))}
