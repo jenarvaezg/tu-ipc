@@ -18,6 +18,7 @@ import Footer from '@/components/Footer'
 import Methodology from '@/components/Methodology'
 import SalaryCalculator from '@/components/SalaryCalculator'
 import ComparisonToggle from '@/components/ComparisonToggle'
+import RegionComparison from '@/components/RegionComparison'
 import LandingPage from '@/components/LandingPage'
 import { PRESETS } from '@/data/presets'
 
@@ -77,7 +78,7 @@ export default function App() {
 
   // Skip landing only if URL has custom weights or comparisons (= shared link)
   const hasSharedParams = useMemo(() => {
-    return urlState.weights != null || urlState.comparisonIds != null
+    return urlState.weights != null || urlState.comparisonIds != null || urlState.comparisonRegions != null
   }, [urlState])
 
   const [showLanding, setShowLanding] = useState(() => !hasSharedParams)
@@ -102,6 +103,7 @@ export default function App() {
   )
   const [activeTab, setActiveTab] = useState(urlState.activeTab || 'evolucion')
   const [comparisonIds, setComparisonIds] = useState<string[]>(urlState.comparisonIds || [])
+  const [comparisonRegions, setComparisonRegions] = useState<string[]>(urlState.comparisonRegions || [])
 
   const chartRef = useRef<HTMLDivElement>(null)
 
@@ -122,6 +124,22 @@ export default function App() {
     }).filter((x): x is NonNullable<typeof x> => x !== null)
   }, [comparisonIds, regionCategories, months, startMonth, endMonth])
 
+  const regionComparisonResults = useMemo(() => {
+    return comparisonRegions.map(regionCode => {
+      const regData = ipcData.regions[regionCode]
+      if (!regData) return null
+      return {
+        id: regionCode,
+        label: regData.name,
+        result: computeIPC(regData.categories, months, weights, startMonth, endMonth),
+      }
+    }).filter((x): x is NonNullable<typeof x> => x !== null)
+  }, [comparisonRegions, months, weights, startMonth, endMonth])
+
+  const allComparisons = useMemo(() => {
+    return [...comparisonResults, ...regionComparisonResults].slice(0, 4)
+  }, [comparisonResults, regionComparisonResults])
+
   const handleToggleComparison = useCallback((presetId: string) => {
     setComparisonIds(prev =>
       prev.includes(presetId)
@@ -134,9 +152,21 @@ export default function App() {
     setComparisonIds([])
   }, [])
 
+  const handleToggleRegionComparison = useCallback((regionCode: string) => {
+    setComparisonRegions(prev =>
+      prev.includes(regionCode) ? prev.filter(r => r !== regionCode) : [...prev, regionCode]
+    )
+  }, [])
+
+  const handleClearRegionComparisons = useCallback(() => {
+    setComparisonRegions([])
+  }, [])
+
   const handleRegionChange = useCallback((code: string) => {
     setRegion(code)
     saveRegion(code)
+    // Remove from region comparisons if user switches to it
+    setComparisonRegions(prev => prev.filter(r => r !== code))
   }, [])
 
   const handleWeightChange = useCallback((code: string, newValue: number) => {
@@ -221,9 +251,9 @@ export default function App() {
   // Sync state to URL (only when calculator is visible)
   useEffect(() => {
     if (!showLanding) {
-      syncToURL({ weights, startMonth, endMonth, region, activeTab, comparisonIds })
+      syncToURL({ weights, startMonth, endMonth, region, activeTab, comparisonIds, comparisonRegions })
     }
-  }, [showLanding, weights, startMonth, endMonth, region, activeTab, comparisonIds])
+  }, [showLanding, weights, startMonth, endMonth, region, activeTab, comparisonIds, comparisonRegions])
 
   if (showLanding) {
     return <LandingPage onStart={() => setShowLanding(false)} />
@@ -256,7 +286,7 @@ export default function App() {
           personalIPC={result.personalIPC}
           officialIPC={result.officialIPC}
           difference={result.difference}
-          comparisons={comparisonResults.map(c => ({ label: c.label, ipc: c.result.personalIPC }))}
+          comparisons={allComparisons.map(c => ({ label: c.label, ipc: c.result.personalIPC }))}
           isCustom={isCustom}
           startMonth={startMonth}
           endMonth={endMonth}
@@ -277,10 +307,17 @@ export default function App() {
               onToggle={handleToggleComparison}
               onClear={handleClearComparisons}
             />
+            <RegionComparison
+              currentRegion={region}
+              comparisonRegions={comparisonRegions}
+              onToggle={handleToggleRegionComparison}
+              onClear={handleClearRegionComparisons}
+              maxComparisons={4 - allComparisons.length + regionComparisonResults.length}
+            />
             <EvolutionChart
               ref={chartRef}
               data={result.evolution}
-              comparisons={comparisonResults.map(c => ({ label: c.label, data: c.result.evolution }))}
+              comparisons={allComparisons.map(c => ({ label: c.label, data: c.result.evolution }))}
               isCustom={isCustom}
             />
           </>

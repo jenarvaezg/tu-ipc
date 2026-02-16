@@ -7,6 +7,7 @@ interface URLState {
   region?: string
   activeTab?: string
   comparisonIds?: string[]
+  comparisonRegions?: string[]
 }
 
 // Parse URL params into state. Returns only fields that are present AND valid.
@@ -55,6 +56,12 @@ export function parseURLState(): URLState {
     result.comparisonIds = c.split(',').filter(Boolean)
   }
 
+  // Parse region comparisons: cr=madrid,cataluna
+  const cr = params.get('cr')
+  if (cr) {
+    result.comparisonRegions = cr.split(',').filter(Boolean)
+  }
+
   return result
 }
 
@@ -66,6 +73,7 @@ export function syncToURL(state: {
   region: string
   activeTab: string
   comparisonIds: string[]
+  comparisonRegions: string[]
 }) {
   const params = new URLSearchParams()
 
@@ -91,6 +99,10 @@ export function syncToURL(state: {
 
   if (state.comparisonIds.length > 0) {
     params.set('c', state.comparisonIds.join(','))
+  }
+
+  if (state.comparisonRegions.length > 0) {
+    params.set('cr', state.comparisonRegions.join(','))
   }
 
   const search = params.toString()
