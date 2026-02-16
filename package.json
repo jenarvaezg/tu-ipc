@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "download-data": "node scripts/download-ine-data.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepare": "husky"
   },
   "dependencies": {
     "@radix-ui/react-select": "^2.2.6",
@@ -36,6 +37,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.4.1",
     "autoprefixer": "^10.4.21",
+    "husky": "^9.1.7",
     "jsdom": "^28.1.0",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",

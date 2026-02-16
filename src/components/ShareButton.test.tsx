@@ -12,7 +12,7 @@ describe('ShareButton', () => {
     getClipboardCalls().length = 0
   })
 
-  it('renders the share button', () => {
+  it('renders the share buttons', () => {
     render(
       <ShareButton
         personalIPC={2.9}
@@ -22,10 +22,12 @@ describe('ShareButton', () => {
         endMonth="2025-01"
       />
     )
-    expect(screen.getByText('Compartir resultado')).toBeInTheDocument()
+    expect(screen.getByText('Texto')).toBeInTheDocument()
+    expect(screen.getByText('Enlace')).toBeInTheDocument()
+    expect(screen.getByText('Imagen')).toBeInTheDocument()
   })
 
-  it('copies correct text to clipboard on click', async () => {
+  it('copies correct text to clipboard on Texto click', async () => {
     render(
       <ShareButton
         personalIPC={2.9}
@@ -36,17 +38,35 @@ describe('ShareButton', () => {
       />
     )
     await act(async () => {
-      fireEvent.click(screen.getByText('Compartir resultado'))
+      fireEvent.click(screen.getByText('Texto'))
       await new Promise(r => setTimeout(r, 0))
     })
     const calls = getClipboardCalls()
     expect(calls).toHaveLength(1)
     expect(calls[0]).toContain('Mi IPC personal')
     expect(calls[0]).toContain('+2.90%')
-    expect(calls[0]).toContain('tu-ipc.vercel.app')
   })
 
-  it('shows Copiado! after click', async () => {
+  it('copies link to clipboard on Enlace click', async () => {
+    render(
+      <ShareButton
+        personalIPC={2.9}
+        officialIPC={2.9}
+        difference={0}
+        startMonth="2024-01"
+        endMonth="2025-01"
+      />
+    )
+    await act(async () => {
+      fireEvent.click(screen.getByText('Enlace'))
+      await new Promise(r => setTimeout(r, 0))
+    })
+    const calls = getClipboardCalls()
+    expect(calls).toHaveLength(1)
+    expect(calls[0]).toContain('http://localhost')
+  })
+
+  it('shows Copiado! after Texto click', async () => {
     const user = userEvent.setup()
     render(
       <ShareButton
@@ -57,7 +77,7 @@ describe('ShareButton', () => {
         endMonth="2025-01"
       />
     )
-    await user.click(screen.getByText('Compartir resultado'))
-    expect(screen.getByText('Copiado!')).toBeInTheDocument()
+    await user.click(screen.getByText('Texto'))
+    expect(screen.getAllByText('Copiado!').length).toBeGreaterThanOrEqual(1)
   })
 })
