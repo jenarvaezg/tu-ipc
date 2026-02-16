@@ -11,10 +11,21 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
+const COMPARISON_COLORS = [
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
+]
+
+interface ComparisonSeries {
+  label: string
+  data: { month: string; personal: number; official: number }[]
+}
+
 interface EvolutionChartProps {
   data: { month: string; personal: number; official: number }[]
-  comparisonData?: { month: string; personal: number; official: number }[]
-  comparisonLabel?: string
+  comparisons?: ComparisonSeries[]
 }
 
 const MONTH_NAMES = [
@@ -27,7 +38,7 @@ function formatTick(m: string): string {
   return `${MONTH_NAMES[parseInt(month) - 1]} ${year.slice(2)}`
 }
 
-export default function EvolutionChart({ data, comparisonData, comparisonLabel }: EvolutionChartProps) {
+export default function EvolutionChart({ data, comparisons = [] }: EvolutionChartProps) {
   if (data.length < 2) {
     return (
       <Card className="mb-8">
@@ -38,12 +49,23 @@ export default function EvolutionChart({ data, comparisonData, comparisonLabel }
     )
   }
 
-  const chartData = comparisonData
-    ? data.map((d, i) => ({
-        ...d,
-        comparison: comparisonData[i]?.personal ?? null,
-      }))
-    : data
+  // Merge comparison data into chart data
+  const chartData = data.map((d, i) => {
+    const row: Record<string, unknown> = { ...d }
+    comparisons.forEach((comp, ci) => {
+      row[`comp_${ci}`] = comp.data[i]?.personal ?? null
+    })
+    return row
+  })
+
+  // Build label map for tooltip/legend
+  const labelMap: Record<string, string> = {
+    personal: 'Tu IPC personal',
+    official: 'IPC oficial',
+  }
+  comparisons.forEach((comp, ci) => {
+    labelMap[`comp_${ci}`] = comp.label
+  })
 
   return (
     <Card className="mb-8">
@@ -69,7 +91,7 @@ export default function EvolutionChart({ data, comparisonData, comparisonLabel }
             <Tooltip
               formatter={(value: number, name: string) => [
                 `${value.toFixed(2)}%`,
-                name === 'personal' ? 'Tu IPC' : name === 'official' ? 'IPC oficial' : comparisonLabel || 'Comparación',
+                labelMap[name] || name,
               ]}
               labelFormatter={formatTick}
               contentStyle={{
@@ -87,9 +109,7 @@ export default function EvolutionChart({ data, comparisonData, comparisonLabel }
               }}
             />
             <Legend
-              formatter={(value: string) =>
-                value === 'personal' ? 'Tu IPC personal' : value === 'official' ? 'IPC oficial' : comparisonLabel || 'Comparación'
-              }
+              formatter={(value: string) => labelMap[value] || value}
             />
             <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
             <Line
@@ -109,16 +129,17 @@ export default function EvolutionChart({ data, comparisonData, comparisonLabel }
               dot={false}
               activeDot={{ r: 4 }}
             />
-            {comparisonData && (
+            {comparisons.map((_, ci) => (
               <Line
+                key={`comp_${ci}`}
                 type="monotone"
-                dataKey="comparison"
-                stroke="hsl(var(--chart-2))"
+                dataKey={`comp_${ci}`}
+                stroke={COMPARISON_COLORS[ci % COMPARISON_COLORS.length]}
                 strokeWidth={2}
                 dot={false}
                 activeDot={{ r: 4 }}
               />
-            )}
+            ))}
           </LineChart>
         </ResponsiveContainer>
       </CardContent>

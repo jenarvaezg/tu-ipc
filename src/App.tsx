@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react'
 import ipcDataRaw from '@/data/ipc-data.json'
 import type { IPCData } from '@/data/types'
 import { CATEGORIES, OFFICIAL_WEIGHTS } from '@/data/categories'
-import { useIPCCalculator } from '@/hooks/useIPCCalculator'
+import { useIPCCalculator, computeIPC } from '@/hooks/useIPCCalculator'
 import { parseURLState, syncToURL } from '@/hooks/useURLState'
 import Header from '@/components/Header'
 import KPICards from '@/components/KPICards'
@@ -93,22 +93,36 @@ export default function App() {
       : months[months.length - 1]
   )
   const [activeTab, setActiveTab] = useState(urlState.activeTab || 'evolucion')
-  const [comparisonId, setComparisonId] = useState<string | null>(urlState.comparisonId || null)
+  const [comparisonIds, setComparisonIds] = useState<string[]>(urlState.comparisonIds || [])
 
   const regionData = ipcData.regions[region]
   const regionCategories = regionData?.categories ?? {}
 
   const result = useIPCCalculator(regionCategories, months, weights, startMonth, endMonth)
 
-  const comparisonWeights = useMemo(() => {
-    if (!comparisonId) return null
-    const preset = PRESETS.find(p => p.id === comparisonId)
-    return preset?.weights ?? null
-  }, [comparisonId])
+  const comparisonResults = useMemo(() => {
+    return comparisonIds.map(id => {
+      const preset = PRESETS.find(p => p.id === id)
+      if (!preset) return null
+      return {
+        id,
+        label: preset.name,
+        result: computeIPC(regionCategories, months, preset.weights, startMonth, endMonth),
+      }
+    }).filter((x): x is NonNullable<typeof x> => x !== null)
+  }, [comparisonIds, regionCategories, months, startMonth, endMonth])
 
-  const comparisonResult = useIPCCalculator(
-    regionCategories, months, comparisonWeights ?? weights, startMonth, endMonth
-  )
+  const handleToggleComparison = useCallback((presetId: string) => {
+    setComparisonIds(prev =>
+      prev.includes(presetId)
+        ? prev.filter(id => id !== presetId)
+        : [...prev, presetId]
+    )
+  }, [])
+
+  const handleClearComparisons = useCallback(() => {
+    setComparisonIds([])
+  }, [])
 
   const handleRegionChange = useCallback((code: string) => {
     setRegion(code)
@@ -190,8 +204,8 @@ export default function App() {
 
   // Sync state to URL
   useEffect(() => {
-    syncToURL({ weights, startMonth, endMonth, region, activeTab, comparisonId })
-  }, [weights, startMonth, endMonth, region, activeTab, comparisonId])
+    syncToURL({ weights, startMonth, endMonth, region, activeTab, comparisonIds })
+  }, [weights, startMonth, endMonth, region, activeTab, comparisonIds])
 
   if (page === 'methodology') {
     return <Methodology onBack={() => setPage('calculator')} />
@@ -205,8 +219,7 @@ export default function App() {
           personalIPC={result.personalIPC}
           officialIPC={result.officialIPC}
           difference={result.difference}
-          comparisonIPC={comparisonId ? comparisonResult.personalIPC : undefined}
-          comparisonLabel={comparisonId ? (PRESETS.find(p => p.id === comparisonId)?.name ?? '') : undefined}
+          comparisons={comparisonResults.map(c => ({ label: c.label, ipc: c.result.personalIPC }))}
         />
         <RegionSelector value={region} onChange={handleRegionChange} />
         <PeriodSelector
@@ -229,11 +242,14 @@ export default function App() {
         <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
         {activeTab === 'evolucion' && (
           <>
-            <ComparisonToggle comparisonId={comparisonId} onSelect={setComparisonId} />
+            <ComparisonToggle
+              comparisonIds={comparisonIds}
+              onToggle={handleToggleComparison}
+              onClear={handleClearComparisons}
+            />
             <EvolutionChart
               data={result.evolution}
-              comparisonData={comparisonId ? comparisonResult.evolution : undefined}
-              comparisonLabel={comparisonId ? (PRESETS.find(p => p.id === comparisonId)?.name ?? '') : undefined}
+              comparisons={comparisonResults.map(c => ({ label: c.label, data: c.result.evolution }))}
             />
           </>
         )}

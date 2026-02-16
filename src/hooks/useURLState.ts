@@ -6,7 +6,7 @@ interface URLState {
   endMonth?: string
   region?: string
   activeTab?: string
-  comparisonId?: string | null
+  comparisonIds?: string[]
 }
 
 // Parse URL params into state. Returns only fields that are present AND valid.
@@ -49,10 +49,10 @@ export function parseURLState(): URLState {
     result.activeTab = t
   }
 
-  // Parse comparison: c=pensionista
+  // Parse comparisons: c=joven,pensionista-propietario
   const c = params.get('c')
   if (c) {
-    result.comparisonId = c
+    result.comparisonIds = c.split(',').filter(Boolean)
   }
 
   return result
@@ -65,7 +65,7 @@ export function syncToURL(state: {
   endMonth: string
   region: string
   activeTab: string
-  comparisonId: string | null
+  comparisonIds: string[]
 }) {
   const params = new URLSearchParams()
 
@@ -89,8 +89,8 @@ export function syncToURL(state: {
     params.set('t', state.activeTab)
   }
 
-  if (state.comparisonId) {
-    params.set('c', state.comparisonId)
+  if (state.comparisonIds.length > 0) {
+    params.set('c', state.comparisonIds.join(','))
   }
 
   const search = params.toString()

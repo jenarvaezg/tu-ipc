@@ -2,14 +2,13 @@ import { useMemo } from 'react'
 import type { IPCCategory, IPCResult } from '@/data/types'
 import { OFFICIAL_WEIGHTS } from '@/data/categories'
 
-export function useIPCCalculator(
+export function computeIPC(
   categories: Record<string, IPCCategory>,
   months: string[],
   weights: Record<string, number>,
   startMonth: string,
   endMonth: string
 ): IPCResult {
-  return useMemo(() => {
     const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0)
     const normalizedWeights: Record<string, number> = {}
     for (const [code, w] of Object.entries(weights)) {
@@ -78,5 +77,17 @@ export function useIPCCalculator(
       evolution,
       breakdown,
     }
-  }, [categories, months, weights, startMonth, endMonth])
+}
+
+export function useIPCCalculator(
+  categories: Record<string, IPCCategory>,
+  months: string[],
+  weights: Record<string, number>,
+  startMonth: string,
+  endMonth: string
+): IPCResult {
+  return useMemo(
+    () => computeIPC(categories, months, weights, startMonth, endMonth),
+    [categories, months, weights, startMonth, endMonth]
+  )
 }
