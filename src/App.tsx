@@ -215,10 +215,12 @@ export default function App() {
     return vars
   }, [result.breakdown])
 
-  // Sync state to URL
+  // Sync state to URL (only when calculator is visible)
   useEffect(() => {
-    syncToURL({ weights, startMonth, endMonth, region, activeTab, comparisonIds })
-  }, [weights, startMonth, endMonth, region, activeTab, comparisonIds])
+    if (!showLanding) {
+      syncToURL({ weights, startMonth, endMonth, region, activeTab, comparisonIds })
+    }
+  }, [showLanding, weights, startMonth, endMonth, region, activeTab, comparisonIds])
 
   if (showLanding) {
     return <LandingPage onStart={() => setShowLanding(false)} />
