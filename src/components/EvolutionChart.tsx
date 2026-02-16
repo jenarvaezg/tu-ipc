@@ -143,7 +143,7 @@ const EvolutionChart = forwardRef<HTMLDivElement, EvolutionChartProps>(function 
               formatter={(value: string) => labelMap[value] || value}
             />
             <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
-            {activeData.length <= 60 && HISTORICAL_EVENTS
+            {HISTORICAL_EVENTS
               .filter(event => {
                 const first = activeData[0]?.month
                 const last = activeData[activeData.length - 1]?.month
