@@ -7,6 +7,49 @@ body {
   min-height: 100vh;
 }
 
+/* Landing page animations */
+@keyframes gradient {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); opacity: 0.1; }
+  50% { transform: translateY(-20px); opacity: 0.3; }
+}
+
+.animate-gradient {
+  animation: gradient 8s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-delay-0 {
+  animation: float 6s ease-in-out infinite;
+  animation-delay: 0s;
+}
+
+.animate-float-delay-1 {
+  animation: float 6s ease-in-out infinite;
+  animation-delay: 1.5s;
+}
+
+.animate-float-delay-2 {
+  animation: float 6s ease-in-out infinite;
+  animation-delay: 3s;
+}
+
+.animate-float-delay-3 {
+  animation: float 6s ease-in-out infinite;
+  animation-delay: 4.5s;
+}
+
+.animate-in {
+  opacity: 1 !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 98%;

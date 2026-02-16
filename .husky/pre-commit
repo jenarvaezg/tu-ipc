@@ -1,1 +1,2 @@
-npm run build && npm test
+export PATH="$HOME/.bun/bin:$PATH"
+bun run build && bun run test
