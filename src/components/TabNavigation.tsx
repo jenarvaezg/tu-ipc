@@ -18,6 +18,7 @@ export default function TabNavigation({ activeTab, onTabChange }: TabNavigationP
         {TABS.map((tab) => (
           <Button
             key={tab.id}
+            id={`${tab.id}-tab`}
             role="tab"
             aria-selected={activeTab === tab.id}
             aria-controls={`${tab.id}-panel`}

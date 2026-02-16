@@ -1,11 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card'
-
-const COMPARISON_COLORS = [
-  'hsl(var(--chart-2))',
-  'hsl(var(--chart-3))',
-  'hsl(var(--chart-4))',
-  'hsl(var(--chart-5))',
-]
+import { COMPARISON_COLORS } from '@/data/constants'
 
 interface ComparisonKPI {
   label: string
@@ -58,12 +52,17 @@ export default function KPICards({ personalIPC, officialIPC, difference, compari
         ? 'Tu coste de vida sube menos que la media'
         : 'Tu inflación coincide con la media'
 
+  const GRID_CLASSES: Record<number, string> = {
+    1: 'md:grid-cols-1',
+    2: 'md:grid-cols-2',
+    3: 'md:grid-cols-3',
+    4: 'md:grid-cols-2 lg:grid-cols-4',
+    5: 'md:grid-cols-3 lg:grid-cols-5',
+    6: 'md:grid-cols-3 lg:grid-cols-6',
+  }
   const baseCards = isCustom ? 3 : 1
   const totalCards = baseCards + comparisons.length
-  const gridCols = totalCards === 1 ? 'md:grid-cols-1' :
-    totalCards <= 3 ? `md:grid-cols-${totalCards}` :
-    totalCards === 4 ? 'md:grid-cols-2 lg:grid-cols-4' :
-    'md:grid-cols-3 lg:grid-cols-' + Math.min(totalCards, 6)
+  const gridCols = GRID_CLASSES[Math.min(totalCards, 6)] || 'md:grid-cols-3'
 
   return (
     <div className={`grid grid-cols-1 ${gridCols} gap-4 mb-8`}>

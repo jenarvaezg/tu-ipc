@@ -78,7 +78,13 @@ export default function PeriodSelector({
         <div className="flex flex-wrap gap-3 items-center">
           <div>
             <label className="block text-xs text-muted-foreground mb-1">Desde</label>
-            <Select value={startMonth} onValueChange={onStartChange}>
+            <Select value={startMonth} onValueChange={(v) => {
+              onStartChange(v)
+              if (v >= endMonth) {
+                const nextIdx = months.indexOf(v) + 1
+                if (nextIdx < months.length) onEndChange(months[nextIdx])
+              }
+            }}>
               <SelectTrigger className="w-[140px] h-9">
                 <SelectValue />
               </SelectTrigger>
@@ -91,7 +97,13 @@ export default function PeriodSelector({
           </div>
           <div>
             <label className="block text-xs text-muted-foreground mb-1">Hasta</label>
-            <Select value={endMonth} onValueChange={onEndChange}>
+            <Select value={endMonth} onValueChange={(v) => {
+              onEndChange(v)
+              if (v <= startMonth) {
+                const prevIdx = months.indexOf(v) - 1
+                if (prevIdx >= 0) onStartChange(months[prevIdx])
+              }
+            }}>
               <SelectTrigger className="w-[140px] h-9">
                 <SelectValue />
               </SelectTrigger>

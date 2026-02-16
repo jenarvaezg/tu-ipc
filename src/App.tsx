@@ -301,7 +301,7 @@ export default function App() {
         />
         <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
         {activeTab === 'evolucion' && (
-          <>
+          <div role="tabpanel" id="evolucion-panel" aria-labelledby="evolucion-tab">
             <ComparisonToggle
               comparisonIds={comparisonIds}
               onToggle={handleToggleComparison}
@@ -320,10 +320,10 @@ export default function App() {
               comparisons={allComparisons.map(c => ({ label: c.label, data: c.result.evolution }))}
               isCustom={isCustom}
             />
-          </>
+          </div>
         )}
         {activeTab === 'desglose' && (
-          <>
+          <div role="tabpanel" id="desglose-panel" aria-labelledby="desglose-tab">
             <PresetSelector weights={weights} onSelect={handlePresetSelect} />
             <WeightSliders
               weights={weights}
@@ -334,14 +334,16 @@ export default function App() {
               categoryVariations={categoryVariations}
             />
             <CategoryBreakdown breakdown={result.breakdown} />
-          </>
+          </div>
         )}
         {activeTab === 'sueldo' && (
-          <SalaryCalculator
-            personalIPC={result.personalIPC}
-            startMonth={startMonth}
-            endMonth={endMonth}
-          />
+          <div role="tabpanel" id="sueldo-panel" aria-labelledby="sueldo-tab">
+            <SalaryCalculator
+              personalIPC={result.personalIPC}
+              startMonth={startMonth}
+              endMonth={endMonth}
+            />
+          </div>
         )}
         <Footer onMethodology={() => setPage('methodology')} />
       </div>

@@ -69,7 +69,7 @@ export default function SalaryCalculator({ personalIPC, startMonth, endMonth }: 
           {/* Pay type selector */}
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-2">Tipo de salario</label>
-            <div className="flex gap-2">
+            <div className="flex gap-2" role="group" aria-label="Tipo de salario">
               {PAY_TYPES.map(pt => (
                 <Button
                   key={pt.id}
@@ -91,11 +91,12 @@ export default function SalaryCalculator({ personalIPC, startMonth, endMonth }: 
           {/* Salary inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-1">
+              <label htmlFor="salary-before" className="block text-sm font-medium text-muted-foreground mb-1">
                 Salario neto {inputs.payType === 'anual' ? 'anual' : 'mensual'} antes
               </label>
               <div className="relative">
                 <input
+                  id="salary-before"
                   type="text"
                   inputMode="decimal"
                   value={inputs.before}
@@ -107,11 +108,12 @@ export default function SalaryCalculator({ personalIPC, startMonth, endMonth }: 
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-1">
+              <label htmlFor="salary-after" className="block text-sm font-medium text-muted-foreground mb-1">
                 Salario neto {inputs.payType === 'anual' ? 'anual' : 'mensual'} después
               </label>
               <div className="relative">
                 <input
+                  id="salary-after"
                   type="text"
                   inputMode="decimal"
                   value={inputs.after}
