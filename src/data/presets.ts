@@ -55,11 +55,11 @@ export const PRESETS: WeightPreset[] = [
     id: 'joven',
     name: 'Joven soltero/a',
     icon: '🧑',
-    description: 'Alto gasto en ocio, restaurantes y transporte',
+    description: 'Alto gasto en vivienda (alquiler), ocio y restaurantes',
     weights: {
-      '01': 15.0, '02': 4.5, '03': 6.0, '04': 12.0,
-      '05': 3.5, '06': 2.0, '07': 14.0, '08': 5.0,
-      '09': 12.0, '10': 2.0, '11': 18.0, '12': 6.0,
+      '01': 12.0, '02': 3.5, '03': 5.0, '04': 35.0,
+      '05': 2.5, '06': 1.5, '07': 10.0, '08': 3.0,
+      '09': 8.0, '10': 1.0, '11': 14.0, '12': 4.5,
     },
   },
 ]
