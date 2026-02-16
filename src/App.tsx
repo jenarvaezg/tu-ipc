@@ -229,7 +229,7 @@ export default function App() {
             endMonth={endMonth}
           />
         )}
-        <ShareSuggestion difference={result.difference} isCustom={isCustom} />
+        <ShareSuggestion difference={result.difference} isCustom={isCustom} personalIPC={result.personalIPC} />
         <RegionSelector value={region} onChange={handleRegionChange} />
         <PeriodSelector
           months={months}

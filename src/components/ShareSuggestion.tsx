@@ -1,16 +1,17 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { X } from 'lucide-react'
+import { X, Twitter } from 'lucide-react'
 
 const DISMISS_KEY = 'tu-ipc-share-suggestion-dismissed'
 
 interface ShareSuggestionProps {
   difference: number
   isCustom: boolean
+  personalIPC: number
 }
 
-export default function ShareSuggestion({ difference, isCustom }: ShareSuggestionProps) {
+export default function ShareSuggestion({ difference, isCustom, personalIPC }: ShareSuggestionProps) {
   const [dismissed, setDismissed] = useState(() => {
     try {
       return sessionStorage.getItem(DISMISS_KEY) === '1'
@@ -20,6 +21,17 @@ export default function ShareSuggestion({ difference, isCustom }: ShareSuggestio
   })
 
   const show = !dismissed && isCustom && Math.abs(difference) > 1.5
+
+  const handleShareX = useCallback(() => {
+    const direction = difference > 0 ? 'por encima' : 'por debajo'
+    const text = `Mi inflación personal es del ${personalIPC >= 0 ? '+' : ''}${personalIPC.toFixed(2)}%, ${Math.abs(difference).toFixed(1)} pp ${direction} de la media. Calcula la tuya:`
+    const url = window.location.href
+    window.open(
+      `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+      '_blank',
+      'noopener,noreferrer'
+    )
+  }, [difference, personalIPC])
 
   if (!show) return null
 
@@ -41,7 +53,13 @@ export default function ShareSuggestion({ difference, isCustom }: ShareSuggestio
           <span className={`font-semibold ${color}`}>
             {Math.abs(difference).toFixed(1)} pp {direction}
           </span>{' '}
-          que la media nacional. ¡Comparte tu resultado con amigos o en redes!
+          que la media nacional.{' '}
+          <button
+            onClick={handleShareX}
+            className="inline-flex items-center gap-1 font-medium text-foreground hover:text-primary transition-colors"
+          >
+            Compartir en <Twitter className="inline h-3.5 w-3.5" />
+          </button>
         </p>
         <Button
           variant="ghost"
