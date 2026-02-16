@@ -1,3 +1,4 @@
+import { forwardRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   LineChart,
@@ -39,7 +40,7 @@ function formatTick(m: string): string {
   return `${MONTH_NAMES[parseInt(month) - 1]} ${year.slice(2)}`
 }
 
-export default function EvolutionChart({ data, comparisons = [], isCustom = true }: EvolutionChartProps) {
+const EvolutionChart = forwardRef<HTMLDivElement, EvolutionChartProps>(function EvolutionChart({ data, comparisons = [], isCustom = true }, ref) {
   if (data.length < 2) {
     return (
       <Card className="mb-8">
@@ -69,7 +70,7 @@ export default function EvolutionChart({ data, comparisons = [], isCustom = true
   })
 
   return (
-    <Card className="mb-8">
+    <Card ref={ref} className="mb-8">
       <CardHeader>
         <CardTitle>Evolución del IPC</CardTitle>
       </CardHeader>
@@ -148,4 +149,6 @@ export default function EvolutionChart({ data, comparisons = [], isCustom = true
       </CardContent>
     </Card>
   )
-}
+})
+
+export default EvolutionChart

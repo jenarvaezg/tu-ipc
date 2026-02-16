@@ -1,12 +1,14 @@
 import { Button } from '@/components/ui/button'
 import ThemeToggle from '@/components/ThemeToggle'
+import type { ReactNode } from 'react'
 
 interface HeaderProps {
   lastUpdated: string
   onMethodology?: () => void
+  actions?: ReactNode
 }
 
-export default function Header({ lastUpdated, onMethodology }: HeaderProps) {
+export default function Header({ lastUpdated, onMethodology, actions }: HeaderProps) {
   const dateStr = new Date(lastUpdated).toLocaleDateString('es-ES', {
     year: 'numeric',
     month: 'long',
@@ -14,7 +16,8 @@ export default function Header({ lastUpdated, onMethodology }: HeaderProps) {
 
   return (
     <header className="text-center mb-10 animate-fade-in relative">
-      <div className="absolute right-0 top-0">
+      <div className="absolute right-0 top-0 flex items-center gap-1">
+        {actions}
         <ThemeToggle />
       </div>
       <h1 className="text-5xl font-bold tracking-tight mb-3">

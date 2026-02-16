@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import ipcDataRaw from '@/data/ipc-data.json'
 import type { IPCData } from '@/data/types'
 import { CATEGORIES, OFFICIAL_WEIGHTS } from '@/data/categories'
@@ -102,6 +102,8 @@ export default function App() {
   )
   const [activeTab, setActiveTab] = useState(urlState.activeTab || 'evolucion')
   const [comparisonIds, setComparisonIds] = useState<string[]>(urlState.comparisonIds || [])
+
+  const chartRef = useRef<HTMLDivElement>(null)
 
   const regionData = ipcData.regions[region]
   const regionCategories = regionData?.categories ?? {}
@@ -234,9 +236,10 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="relative">
-          <Header lastUpdated={ipcData.lastUpdated} onMethodology={() => setPage('methodology')} />
-          <div className="absolute right-0 top-12 md:top-0">
+        <Header
+          lastUpdated={ipcData.lastUpdated}
+          onMethodology={() => setPage('methodology')}
+          actions={
             <ShareButton
               personalIPC={result.personalIPC}
               officialIPC={result.officialIPC}
@@ -245,9 +248,10 @@ export default function App() {
               endMonth={endMonth}
               region={region}
               isCustom={isCustom}
+              chartRef={chartRef}
             />
-          </div>
-        </div>
+          }
+        />
         <KPICards
           personalIPC={result.personalIPC}
           officialIPC={result.officialIPC}
@@ -272,6 +276,7 @@ export default function App() {
               onClear={handleClearComparisons}
             />
             <EvolutionChart
+              ref={chartRef}
               data={result.evolution}
               comparisons={comparisonResults.map(c => ({ label: c.label, data: c.result.evolution }))}
               isCustom={isCustom}

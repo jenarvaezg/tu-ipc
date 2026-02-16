@@ -32,8 +32,8 @@ export default function WeightSliders({
   return (
     <Card className="mb-8">
       <CardHeader>
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div>
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
             <CardTitle>Ajusta tus pesos de gasto</CardTitle>
             <CardDescription className="mt-1">
               Mueve los sliders según cuánto gastas en cada categoría. El resto se ajusta automáticamente.
@@ -44,7 +44,7 @@ export default function WeightSliders({
               )}
             </CardDescription>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-shrink-0">
             <Button variant="outline" size="sm" onClick={() => onReset('official')}>
               Pesos INE
             </Button>
