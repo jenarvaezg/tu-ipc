@@ -41,6 +41,26 @@ export default function Footer({ onMethodology }: FooterProps) {
             </>
           )}
         </p>
+        <p className="mt-2">
+          Hecho por{' '}
+          <a
+            href="https://github.com/jenarvaezg"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-4 hover:text-primary transition-colors"
+          >
+            jenarvaezg
+          </a>
+          {' · '}
+          <a
+            href="https://github.com/jenarvaezg/tu-ipc"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-4 hover:text-primary transition-colors"
+          >
+            Código fuente
+          </a>
+        </p>
       </div>
     </footer>
   )

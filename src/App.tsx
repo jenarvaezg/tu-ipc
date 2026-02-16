@@ -1,18 +1,24 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import ipcDataRaw from '@/data/ipc-data.json'
 import type { IPCData } from '@/data/types'
 import { CATEGORIES, OFFICIAL_WEIGHTS } from '@/data/categories'
 import { useIPCCalculator } from '@/hooks/useIPCCalculator'
+import { parseURLState, syncToURL } from '@/hooks/useURLState'
 import Header from '@/components/Header'
 import KPICards from '@/components/KPICards'
 import RegionSelector from '@/components/RegionSelector'
 import PeriodSelector from '@/components/PeriodSelector'
+import TabNavigation from '@/components/TabNavigation'
 import EvolutionChart from '@/components/EvolutionChart'
 import WeightSliders from '@/components/WeightSliders'
 import CategoryBreakdown from '@/components/CategoryBreakdown'
+import PresetSelector from '@/components/PresetSelector'
 import ShareButton from '@/components/ShareButton'
 import Footer from '@/components/Footer'
 import Methodology from '@/components/Methodology'
+import SalaryCalculator from '@/components/SalaryCalculator'
+import ComparisonToggle from '@/components/ComparisonToggle'
+import { PRESETS } from '@/data/presets'
 
 const ipcData = ipcDataRaw as IPCData
 
@@ -64,20 +70,45 @@ function saveRegion(region: string) {
 
 export default function App() {
   const [page, setPage] = useState<'calculator' | 'methodology'>('calculator')
-  // weights are normalized percentages that sum to 100
-  const [weights, setWeights] = useState<Record<string, number>>(loadWeights)
+
+  // URL params take priority over localStorage
+  const urlState = useMemo(() => parseURLState(), [])
+
+  const [weights, setWeights] = useState<Record<string, number>>(
+    () => urlState.weights || loadWeights()
+  )
   const [locked, setLocked] = useState<Set<string>>(loadLocked)
-  const [region, setRegion] = useState(loadRegion)
+  const [region, setRegion] = useState(
+    () => urlState.region && ipcData.regions[urlState.region] ? urlState.region : loadRegion()
+  )
   const months = ipcData.months
   const [startMonth, setStartMonth] = useState(
-    () => months[Math.max(0, months.length - 13)] || months[0]
+    () => urlState.startMonth && months.includes(urlState.startMonth)
+      ? urlState.startMonth
+      : months[Math.max(0, months.length - 13)] || months[0]
   )
-  const [endMonth, setEndMonth] = useState(() => months[months.length - 1])
+  const [endMonth, setEndMonth] = useState(
+    () => urlState.endMonth && months.includes(urlState.endMonth)
+      ? urlState.endMonth
+      : months[months.length - 1]
+  )
+  const [activeTab, setActiveTab] = useState(urlState.activeTab || 'evolucion')
+  const [comparisonId, setComparisonId] = useState<string | null>(urlState.comparisonId || null)
 
   const regionData = ipcData.regions[region]
   const regionCategories = regionData?.categories ?? {}
 
   const result = useIPCCalculator(regionCategories, months, weights, startMonth, endMonth)
+
+  const comparisonWeights = useMemo(() => {
+    if (!comparisonId) return null
+    const preset = PRESETS.find(p => p.id === comparisonId)
+    return preset?.weights ?? null
+  }, [comparisonId])
+
+  const comparisonResult = useIPCCalculator(
+    regionCategories, months, comparisonWeights ?? weights, startMonth, endMonth
+  )
 
   const handleRegionChange = useCallback((code: string) => {
     setRegion(code)
@@ -142,6 +173,13 @@ export default function App() {
     saveLocked(new Set())
   }, [])
 
+  const handlePresetSelect = useCallback((presetWeights: Record<string, number>) => {
+    setWeights(presetWeights)
+    saveWeights(presetWeights)
+    setLocked(new Set())
+    saveLocked(new Set())
+  }, [])
+
   const categoryVariations = useMemo(() => {
     const vars: Record<string, number> = {}
     for (const item of result.breakdown) {
@@ -149,6 +187,11 @@ export default function App() {
     }
     return vars
   }, [result.breakdown])
+
+  // Sync state to URL
+  useEffect(() => {
+    syncToURL({ weights, startMonth, endMonth, region, activeTab, comparisonId })
+  }, [weights, startMonth, endMonth, region, activeTab, comparisonId])
 
   if (page === 'methodology') {
     return <Methodology onBack={() => setPage('calculator')} />
@@ -162,6 +205,8 @@ export default function App() {
           personalIPC={result.personalIPC}
           officialIPC={result.officialIPC}
           difference={result.difference}
+          comparisonIPC={comparisonId ? comparisonResult.personalIPC : undefined}
+          comparisonLabel={comparisonId ? (PRESETS.find(p => p.id === comparisonId)?.name ?? '') : undefined}
         />
         <RegionSelector value={region} onChange={handleRegionChange} />
         <PeriodSelector
@@ -171,25 +216,48 @@ export default function App() {
           onStartChange={setStartMonth}
           onEndChange={setEndMonth}
         />
-        <EvolutionChart data={result.evolution} />
-        <WeightSliders
-          weights={weights}
-          locked={locked}
-          onChange={handleWeightChange}
-          onToggleLock={handleToggleLock}
-          onReset={handleReset}
-          categoryVariations={categoryVariations}
-        />
-        <CategoryBreakdown breakdown={result.breakdown} />
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <ShareButton
             personalIPC={result.personalIPC}
             officialIPC={result.officialIPC}
             difference={result.difference}
             startMonth={startMonth}
             endMonth={endMonth}
+            region={region}
           />
         </div>
+        <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+        {activeTab === 'evolucion' && (
+          <>
+            <ComparisonToggle comparisonId={comparisonId} onSelect={setComparisonId} />
+            <EvolutionChart
+              data={result.evolution}
+              comparisonData={comparisonId ? comparisonResult.evolution : undefined}
+              comparisonLabel={comparisonId ? (PRESETS.find(p => p.id === comparisonId)?.name ?? '') : undefined}
+            />
+          </>
+        )}
+        {activeTab === 'desglose' && (
+          <>
+            <PresetSelector weights={weights} onSelect={handlePresetSelect} />
+            <WeightSliders
+              weights={weights}
+              locked={locked}
+              onChange={handleWeightChange}
+              onToggleLock={handleToggleLock}
+              onReset={handleReset}
+              categoryVariations={categoryVariations}
+            />
+            <CategoryBreakdown breakdown={result.breakdown} />
+          </>
+        )}
+        {activeTab === 'sueldo' && (
+          <SalaryCalculator
+            personalIPC={result.personalIPC}
+            startMonth={startMonth}
+            endMonth={endMonth}
+          />
+        )}
         <Footer onMethodology={() => setPage('methodology')} />
       </div>
     </div>

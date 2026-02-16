@@ -13,6 +13,8 @@ import {
 
 interface EvolutionChartProps {
   data: { month: string; personal: number; official: number }[]
+  comparisonData?: { month: string; personal: number; official: number }[]
+  comparisonLabel?: string
 }
 
 const MONTH_NAMES = [
@@ -25,7 +27,7 @@ function formatTick(m: string): string {
   return `${MONTH_NAMES[parseInt(month) - 1]} ${year.slice(2)}`
 }
 
-export default function EvolutionChart({ data }: EvolutionChartProps) {
+export default function EvolutionChart({ data, comparisonData, comparisonLabel }: EvolutionChartProps) {
   if (data.length < 2) {
     return (
       <Card className="mb-8">
@@ -36,6 +38,13 @@ export default function EvolutionChart({ data }: EvolutionChartProps) {
     )
   }
 
+  const chartData = comparisonData
+    ? data.map((d, i) => ({
+        ...d,
+        comparison: comparisonData[i]?.personal ?? null,
+      }))
+    : data
+
   return (
     <Card className="mb-8">
       <CardHeader>
@@ -43,7 +52,7 @@ export default function EvolutionChart({ data }: EvolutionChartProps) {
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={350}>
-          <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+          <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
             <XAxis
               dataKey="month"
@@ -60,7 +69,7 @@ export default function EvolutionChart({ data }: EvolutionChartProps) {
             <Tooltip
               formatter={(value: number, name: string) => [
                 `${value.toFixed(2)}%`,
-                name === 'personal' ? 'Tu IPC' : 'IPC oficial',
+                name === 'personal' ? 'Tu IPC' : name === 'official' ? 'IPC oficial' : comparisonLabel || 'Comparación',
               ]}
               labelFormatter={formatTick}
               contentStyle={{
@@ -79,7 +88,7 @@ export default function EvolutionChart({ data }: EvolutionChartProps) {
             />
             <Legend
               formatter={(value: string) =>
-                value === 'personal' ? 'Tu IPC personal' : 'IPC oficial'
+                value === 'personal' ? 'Tu IPC personal' : value === 'official' ? 'IPC oficial' : comparisonLabel || 'Comparación'
               }
             />
             <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
@@ -100,6 +109,16 @@ export default function EvolutionChart({ data }: EvolutionChartProps) {
               dot={false}
               activeDot={{ r: 4 }}
             />
+            {comparisonData && (
+              <Line
+                type="monotone"
+                dataKey="comparison"
+                stroke="hsl(var(--chart-2))"
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
+            )}
           </LineChart>
         </ResponsiveContainer>
       </CardContent>

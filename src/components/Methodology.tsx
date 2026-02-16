@@ -287,7 +287,66 @@ const elegida = sorted[0] // Más larga = v1`}
           </p>
         </Section>
 
-        <Section title="6. Notas técnicas">
+        <Section title="6. Perfiles de gasto predefinidos">
+          <p className="text-muted-foreground mb-4">
+            Ofrecemos varios perfiles de gasto tipo para que puedas empezar rápidamente
+            con una configuración realista. Los pesos de cada perfil son <strong className="text-foreground">estimaciones orientativas</strong> basadas
+            en datos de la Encuesta de Presupuestos Familiares (EPF) del INE y estudios de patrones de consumo por perfil demográfico.
+          </p>
+
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Perfil</TableHead>
+                <TableHead>Criterio</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell className="font-medium">📊 Oficial INE</TableCell>
+                <TableCell className="text-sm text-muted-foreground">Ponderaciones oficiales del INE para el consumidor medio español</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">🏠 Pensionista (propietario)</TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  ~80% de los mayores de 65 años son propietarios sin hipoteca. Se reduce vivienda a ~10%
+                  (solo suministros y mantenimiento, sin alquiler) y se eleva alimentación (~30%), sanidad (~14%)
+                  y otros servicios (seguros, cuidado personal)
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">👴 Pensionista (inquilino)</TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  ~20% de pensionistas que pagan alquiler. Vivienda sube a ~22% (incluye alquiler real + suministros).
+                  Alto gasto en alimentación y sanidad, menor gasto en ocio y restaurantes
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">👨‍👩‍👧‍👦 Familia con hijos</TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  Basado en EPF para hogares con menores. Alto gasto en alimentación (~25%), educación (~6%),
+                  vivienda (~18%) y vestido/calzado (~7%). Menor gasto relativo en ocio y restaurantes
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">🧑 Joven soltero/a</TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  Basado en EPF para hogares unipersonales &lt;35 años. Alto gasto en restaurantes (~18%),
+                  ocio (~12%), transporte (~14%) y comunicaciones (~5%). Menor gasto en alimentación en casa
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+
+          <p className="text-sm text-muted-foreground/70 mt-4">
+            Estos perfiles son aproximaciones para facilitar el uso de la herramienta.
+            Para obtener tu IPC más preciso, ajusta los pesos manualmente según tus gastos reales.
+            El IPC del INE no incluye alquileres imputados (el coste teórico de vivir en una vivienda en propiedad),
+            por eso la distinción entre propietario e inquilino se refiere exclusivamente al alquiler real.
+          </p>
+        </Section>
+
+        <Section title="7. Notas técnicas">
           <div className="space-y-4">
             <div>
               <h3 className="font-semibold mb-1">Estacionalidad</h3>
