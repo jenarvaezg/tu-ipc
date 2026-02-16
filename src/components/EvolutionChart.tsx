@@ -26,6 +26,7 @@ interface ComparisonSeries {
 interface EvolutionChartProps {
   data: { month: string; personal: number; official: number }[]
   comparisons?: ComparisonSeries[]
+  isCustom?: boolean
 }
 
 const MONTH_NAMES = [
@@ -38,7 +39,7 @@ function formatTick(m: string): string {
   return `${MONTH_NAMES[parseInt(month) - 1]} ${year.slice(2)}`
 }
 
-export default function EvolutionChart({ data, comparisons = [] }: EvolutionChartProps) {
+export default function EvolutionChart({ data, comparisons = [], isCustom = true }: EvolutionChartProps) {
   if (data.length < 2) {
     return (
       <Card className="mb-8">
@@ -112,22 +113,24 @@ export default function EvolutionChart({ data, comparisons = [] }: EvolutionChar
               formatter={(value: string) => labelMap[value] || value}
             />
             <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
-            <Line
-              type="monotone"
-              dataKey="personal"
-              stroke="hsl(var(--chart-1))"
-              strokeWidth={2.5}
-              dot={false}
-              activeDot={{ r: 5 }}
-            />
+            {isCustom && (
+              <Line
+                type="monotone"
+                dataKey="personal"
+                stroke="hsl(var(--chart-1))"
+                strokeWidth={2.5}
+                dot={false}
+                activeDot={{ r: 5 }}
+              />
+            )}
             <Line
               type="monotone"
               dataKey="official"
-              stroke="hsl(var(--muted-foreground))"
-              strokeWidth={2}
-              strokeDasharray="6 3"
+              stroke={isCustom ? 'hsl(var(--muted-foreground))' : 'hsl(var(--chart-1))'}
+              strokeWidth={isCustom ? 2 : 2.5}
+              strokeDasharray={isCustom ? '6 3' : undefined}
               dot={false}
-              activeDot={{ r: 4 }}
+              activeDot={{ r: isCustom ? 4 : 5 }}
             />
             {comparisons.map((_, ci) => (
               <Line

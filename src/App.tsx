@@ -207,6 +207,12 @@ export default function App() {
     saveLocked(new Set())
   }, [])
 
+  const isCustom = useMemo(() => {
+    return !CATEGORIES.every(
+      cat => Math.abs((weights[cat.code] ?? 0) - (OFFICIAL_WEIGHTS[cat.code] ?? 0)) < 0.01
+    )
+  }, [weights])
+
   const categoryVariations = useMemo(() => {
     const vars: Record<string, number> = {}
     for (const item of result.breakdown) {
@@ -239,6 +245,7 @@ export default function App() {
           officialIPC={result.officialIPC}
           difference={result.difference}
           comparisons={comparisonResults.map(c => ({ label: c.label, ipc: c.result.personalIPC }))}
+          isCustom={isCustom}
         />
         <RegionSelector value={region} onChange={handleRegionChange} />
         <PeriodSelector
@@ -256,6 +263,7 @@ export default function App() {
             startMonth={startMonth}
             endMonth={endMonth}
             region={region}
+            isCustom={isCustom}
           />
         </div>
         <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
@@ -269,6 +277,7 @@ export default function App() {
             <EvolutionChart
               data={result.evolution}
               comparisons={comparisonResults.map(c => ({ label: c.label, data: c.result.evolution }))}
+              isCustom={isCustom}
             />
           </>
         )}

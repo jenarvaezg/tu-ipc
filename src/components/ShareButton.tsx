@@ -10,6 +10,7 @@ interface ShareButtonProps {
   startMonth: string
   endMonth: string
   region?: string
+  isCustom?: boolean
 }
 
 export default function ShareButton({
@@ -19,6 +20,7 @@ export default function ShareButton({
   startMonth,
   endMonth,
   region = 'nacional',
+  isCustom = true,
 }: ShareButtonProps) {
   const [copiedText, setCopiedText] = useState(false)
   const [copiedLink, setCopiedLink] = useState(false)
@@ -26,14 +28,17 @@ export default function ShareButton({
   const cardRef = useRef<HTMLDivElement>(null)
 
   function handleShareText() {
-    const text = [
-      `Mi IPC personal (${startMonth} a ${endMonth}):`,
-      `  Tu IPC: ${personalIPC >= 0 ? '+' : ''}${personalIPC.toFixed(2)}%`,
-      `  IPC oficial: ${officialIPC >= 0 ? '+' : ''}${officialIPC.toFixed(2)}%`,
-      `  Diferencia: ${difference >= 0 ? '+' : ''}${difference.toFixed(2)} pp`,
-      '',
-      `Calcula el tuyo en ${window.location.href}`,
-    ].join('\n')
+    const lines = isCustom
+      ? [
+          `Mi IPC personal (${startMonth} a ${endMonth}):`,
+          `  Tu IPC: ${personalIPC >= 0 ? '+' : ''}${personalIPC.toFixed(2)}%`,
+          `  IPC oficial: ${officialIPC >= 0 ? '+' : ''}${officialIPC.toFixed(2)}%`,
+          `  Diferencia: ${difference >= 0 ? '+' : ''}${difference.toFixed(2)} pp`,
+        ]
+      : [
+          `IPC en España (${startMonth} a ${endMonth}): ${officialIPC >= 0 ? '+' : ''}${officialIPC.toFixed(2)}%`,
+        ]
+    const text = [...lines, '', `Calcula el tuyo en ${window.location.href}`].join('\n')
 
     navigator.clipboard.writeText(text).then(() => {
       setCopiedText(true)
