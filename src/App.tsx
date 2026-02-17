@@ -53,9 +53,10 @@ export default function App() {
   // URL params take priority over localStorage
   const urlState = useMemo(() => parseURLState(), [])
 
-  // Skip landing only if URL has custom weights or comparisons (= shared link)
+  // Skip landing if URL has any calculator params (shared link or reload from calculator)
   const hasSharedParams = useMemo(() => {
     return urlState.weights != null || urlState.comparisonIds != null || urlState.comparisonRegions != null
+      || urlState.startMonth != null || urlState.endMonth != null || urlState.region != null || urlState.activeTab != null
   }, [urlState])
 
   const [showLanding, setShowLanding] = useState(() => !hasSharedParams)
