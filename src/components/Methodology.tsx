@@ -108,23 +108,23 @@ export default function Methodology({ onBack }: MethodologyProps) {
               <TableRow>
                 <TableHead>Código</TableHead>
                 <TableHead>Categoría</TableHead>
-                <TableHead className="text-right">Peso oficial INE</TableHead>
+                <TableHead className="text-right">Peso IPC 2025</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {[
-                ['01', 'Alimentos y bebidas no alcohólicas', '21.9%'],
-                ['02', 'Bebidas alcohólicas y tabaco', '3.2%'],
-                ['03', 'Vestido y calzado', '4.8%'],
-                ['04', 'Vivienda, agua, electricidad, gas', '13.5%'],
-                ['05', 'Muebles y artículos del hogar', '6.1%'],
-                ['06', 'Sanidad', '4.6%'],
-                ['07', 'Transporte', '13.8%'],
-                ['08', 'Comunicaciones', '3.2%'],
-                ['09', 'Ocio y cultura', '8.2%'],
-                ['10', 'Enseñanza', '1.8%'],
-                ['11', 'Restaurantes y hoteles', '12.8%'],
-                ['12', 'Otros bienes y servicios', '6.1%'],
+                ['01', 'Alimentos y bebidas no alcohólicas', '18.5%'],
+                ['02', 'Bebidas alcohólicas y tabaco', '3.8%'],
+                ['03', 'Vestido y calzado', '4.0%'],
+                ['04', 'Vivienda, agua, electricidad, gas', '12.2%'],
+                ['05', 'Muebles y artículos del hogar', '5.3%'],
+                ['06', 'Sanidad', '5.7%'],
+                ['07', 'Transporte', '14.4%'],
+                ['08', 'Comunicaciones', '3.3%'],
+                ['09', 'Ocio y cultura', '8.5%'],
+                ['10', 'Enseñanza', '1.9%'],
+                ['11', 'Restaurantes y hoteles', '14.7%'],
+                ['12', 'Otros bienes y servicios', '7.7%'],
               ].map(([code, name, weight]) => (
                 <TableRow key={code}>
                   <TableCell className="font-mono">{code}</TableCell>
@@ -291,66 +291,156 @@ const elegida = sorted[0] // Más larga = v1`}
           <p className="text-muted-foreground mb-4">
             Ofrecemos varios perfiles de gasto tipo para que puedas empezar rápidamente
             con una configuración realista. Los pesos de cada perfil son <strong className="text-foreground">estimaciones orientativas</strong> basadas
-            en datos de la Encuesta de Presupuestos Familiares (EPF) del INE y estudios de patrones de consumo por perfil demográfico.
+            en datos de la Encuesta de Presupuestos Familiares (EPF) del INE 2023/2024, las ponderaciones oficiales del IPC 2025,
+            y estudios de patrones de consumo por perfil demográfico de CaixaBank Research.
           </p>
 
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Perfil</TableHead>
-                <TableHead>Criterio</TableHead>
+                <TableHead>Base empírica</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow>
                 <TableCell className="font-medium">📊 Oficial INE</TableCell>
-                <TableCell className="text-sm text-muted-foreground">Ponderaciones oficiales del INE para el consumidor medio español</TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  Ponderaciones oficiales del IPC 2025 (base 2021), publicadas por el INE en enero 2025.
+                  Reflejan la cesta de consumo media de los hogares españoles
+                </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">🏠 Pensionista (propietario)</TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  ~80% de los mayores de 65 años son propietarios (Censo INE 2021). Vivienda al ~18%
-                  (suministros, comunidad, IBI, mantenimiento, sin alquiler). Alto gasto en alimentación (~28%)
-                  y sanidad (~13%). Según la EPF, los hogares de mayores dedican proporcionalmente más a
-                  alimentación en casa y servicios sanitarios
+                  EPF 2024: persona sola 65+ gasta €22.081 de media. CaixaBank Research: tras jubilación,
+                  alimentación y sanidad suben, transporte y educación bajan. ~80% de 65+ son propietarios
+                  (Censo 2021). Vivienda al 15% (suministros, IBI, comunidad, sin alquiler). Sanidad al 11%
                 </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">👴 Pensionista (inquilino)</TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  ~20% de pensionistas en alquiler. Vivienda al ~22% (alquiler real + suministros).
-                  Alto gasto en alimentación (~28%) y sanidad (~12%). Menor gasto en ocio y restaurantes
-                  que la media. Basado en datos de la EPF cruzados con la ECV
+                  EPF 2024 + ECV: ~20% de pensionistas en alquiler. Vivienda al 25% (alquiler real + suministros
+                  sobre presupuesto reducido). EPF Q1: hogares con menor gasto dedican 42.5% a vivienda + 21% a
+                  alimentación. Alto gasto en seguros (12: Otros) por pólizas de salud complementaria
                 </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">👨‍👩‍👧‍👦 Familia con hijos</TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  Basado en la EPF para hogares con menores dependientes. Alto gasto en alimentación (~25%),
-                  vivienda (~18%), educación (~6%) y vestido/calzado (~7%). Menor gasto relativo en
-                  ocio y restaurantes frente a hogares sin hijos
+                  EPF 2024: pareja con hijos = gasto más alto (€43.163). Educación al 7% (el grupo
+                  con mayor diferencia vs media del 1.9%). Vestido al 6% (niños crecen). Alimentación
+                  al 21%. Restaurantes bajan al 8% (menos cenas fuera con niños)
                 </TableCell>
               </TableRow>
               <TableRow>
                 <TableCell className="font-medium">🧑 Joven soltero/a</TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  Basado en la EPF para hogares unipersonales &lt;35 años y datos del Observatorio
-                  de Emancipación del CJE. Vivienda al ~35% (el alquiler medio supone más de un tercio
-                  del gasto de los jóvenes). Alto gasto en ocio (~14%) y restaurantes (~10%).
-                  Menor gasto en alimentación en casa (~12%)
+                  EPF 2024: unipersonal &lt;65 = €22.226. CaixaBank Research: jóvenes dedican +4pp a vivienda
+                  (45.4% alquilan, vs 25% media nacional) y -2.3pp a transporte (menos coches). Restaurantes
+                  al 20% y ocio al 10%: los jóvenes aumentaron gasto en comer fuera un 17.5% en la recuperación post-crisis
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">💼 Autónomo</TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  Basado en EPF por situación profesional. Gastos mixtos personal/profesional: transporte al 18%
+                  (desplazamientos laborales), comunicaciones al 5% (herramienta de trabajo), restaurantes al 15%
+                  (comidas de negocio). Formación continua eleva educación al 2.5%
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">🎓 Estudiante</TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  Presupuesto muy ajustado. Vivienda al 24% (piso compartido en alquiler). Educación al 12%
+                  (matrícula universitaria, libros, material). Transporte al 6% (abono transporte público).
+                  Patrón similar al quintil 1 de la EPF con peso extra en enseñanza
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">👫 Pareja sin hijos</TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  EPF 2024: pareja sin hijos = €35.059. Doble ingreso sin dependientes (DINK): restaurantes al 20%
+                  y ocio al 10% (patrón quintil 5 EPF: 34.7% en transporte + restaurantes + ocio). Educación
+                  casi nula (0.5%). Vivienda al 12% (costes compartidos)
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">🏡 Teletrabajador</TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  Basado en estudios de impacto del teletrabajo en el consumo. Transporte baja al 5%
+                  (sin commute). Vivienda sube al 17% (suministros más altos). Muebles/hogar al 7%
+                  (equipamiento home office). Comunicaciones al 5.5% (internet de calidad esencial)
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">🌾 Rural</TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  EPF por tamaño de municipio (&lt;10.000 hab.). Transporte al 21% (coche imprescindible,
+                  grandes distancias). Vivienda baja al 9% (mucho más barata). Alimentación al 22%
+                  (más cocina en casa). Restaurantes al 10% (menos oferta hostelera)
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell className="font-medium">💑 Pareja joven</TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  Combina datos EPF &lt;35 y pareja sin hijos. Vivienda al 18% (alquiler compartido pero caro).
+                  Restaurantes al 20% (vida social activa). CaixaBank: jóvenes recuperaron gasto en
+                  ropa (+10.2%) y comer fuera (+17.5%) tras la crisis, patrón mantenido
                 </TableCell>
               </TableRow>
             </TableBody>
           </Table>
 
-          <h3 className="text-lg font-semibold mt-6 mb-3">Referencias</h3>
+          <h3 className="text-lg font-semibold mt-6 mb-3">Fuentes y referencias</h3>
           <ul className="text-sm text-muted-foreground space-y-2 ml-4 list-disc">
             <li>
-              <a href="https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736176806&menu=ultiDatos&idp=1254735976608"
+              <a href="https://www.ine.es/dyngs/Prensa/EPF2024.htm"
                 target="_blank" rel="noopener noreferrer"
                 className="underline underline-offset-4 hover:text-foreground transition-colors">
-                Encuesta de Presupuestos Familiares (EPF)
-              </a> — INE. Gasto medio por hogar según tipo, composición y edad del sustentador principal
+                Encuesta de Presupuestos Familiares (EPF) 2024
+              </a> — INE. Gasto medio €34.044. Estructura porcentual por ECOICOP: alimentación 15.8%,
+              vivienda 32.4%, transporte 11.4%, restaurantes 9.9%. Gasto por tipo de hogar
+            </li>
+            <li>
+              <a href="https://www.ine.es/dyngs/Prensa/EPF2023.htm"
+                target="_blank" rel="noopener noreferrer"
+                className="underline underline-offset-4 hover:text-foreground transition-colors">
+                Encuesta de Presupuestos Familiares (EPF) 2023
+              </a> — INE. Distribución por quintiles: Q1 dedica 42.5% a vivienda y 21% a alimentación;
+              Q5 dedica 34.7% a transporte, restaurantes y ocio
+            </li>
+            <li>
+              <a href="https://www.ine.es/dyngs/Prensa/IPC0125.htm"
+                target="_blank" rel="noopener noreferrer"
+                className="underline underline-offset-4 hover:text-foreground transition-colors">
+                Ponderaciones IPC 2025
+              </a> — INE. Nota de prensa IPC enero 2025: ponderaciones oficiales actualizadas
+              por grupo ECOICOP (base 2021)
+            </li>
+            <li>
+              <a href="https://www.caixabankresearch.com/en/economics-markets/labour-market-demographics/consumption-and-saving-patterns-after-retirement"
+                target="_blank" rel="noopener noreferrer"
+                className="underline underline-offset-4 hover:text-foreground transition-colors">
+                Patrones de consumo tras la jubilación
+              </a> — CaixaBank Research. Tras jubilación: vivienda+suministros 40%, alimentación 17%,
+              ocio/turismo 10%. Sanidad sube, transporte y educación bajan
+            </li>
+            <li>
+              <a href="https://www.caixabankresearch.com/en/economics-markets/activity-growth/how-have-young-adults-changed-their-consumption-and-savings"
+                target="_blank" rel="noopener noreferrer"
+                className="underline underline-offset-4 hover:text-foreground transition-colors">
+                Consumo de jóvenes adultos
+              </a> — CaixaBank Research. Vivienda +4pp (45.4% alquilan), transporte -2.3pp (menos coches).
+              Gasto en comer fuera +17.5%, ropa +10.2% en recuperación
+            </li>
+            <li>
+              <a href="https://www.caixabankresearch.com/en/economics-markets/activity-growth/consumption-who-how-much-and-what"
+                target="_blank" rel="noopener noreferrer"
+                className="underline underline-offset-4 hover:text-foreground transition-colors">
+                Consumo: quién, cuánto y de qué
+              </a> — CaixaBank Research. Diferencias de consumo por edad y nivel de ingresos
             </li>
             <li>
               <a href="https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736176807&menu=ultiDatos&idp=1254735976608"
@@ -364,14 +454,7 @@ const elegida = sorted[0] // Más larga = v1`}
                 target="_blank" rel="noopener noreferrer"
                 className="underline underline-offset-4 hover:text-foreground transition-colors">
                 Censo de Población y Viviendas 2021
-              </a> — INE. Datos de tenencia de vivienda por grupo de edad
-            </li>
-            <li>
-              <a href="http://www.cje.org/es/publicaciones/observatorio-de-emancipacion/"
-                target="_blank" rel="noopener noreferrer"
-                className="underline underline-offset-4 hover:text-foreground transition-colors">
-                Observatorio de Emancipación
-              </a> — Consejo de la Juventud de España (CJE). Coste de emancipación y gasto en vivienda de los jóvenes
+              </a> — INE. Datos de tenencia de vivienda por grupo de edad (~80% propietarios en 65+)
             </li>
           </ul>
 
@@ -380,6 +463,8 @@ const elegida = sorted[0] // Más larga = v1`}
             Para obtener tu IPC más preciso, ajusta los pesos manualmente según tus gastos reales.
             El IPC del INE no incluye alquileres imputados (el coste teórico de vivir en una vivienda en propiedad),
             por eso la distinción entre propietario e inquilino se refiere exclusivamente al alquiler real.
+            La EPF sí incluye alquileres imputados, lo que explica que su peso de vivienda (~32%) sea muy
+            superior al del IPC (~12%).
           </p>
         </Section>
 
