@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { PRESETS } from '@/data/presets'
 import { CATEGORIES } from '@/data/categories'
+import { trackEvent } from '@/utils/analytics'
 
 interface PresetSelectorProps {
   weights: Record<string, number>
@@ -23,7 +24,7 @@ export default function PresetSelector({ weights, onSelect }: PresetSelectorProp
             key={preset.id}
             variant={isActive ? 'default' : 'secondary'}
             size="sm"
-            onClick={() => onSelect(preset.weights)}
+            onClick={() => { trackEvent('preset_select', { preset: preset.name }); onSelect(preset.weights) }}
             className={
               isActive
                 ? ''

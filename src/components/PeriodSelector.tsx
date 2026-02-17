@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { trackEvent } from '@/utils/analytics'
 import {
   Select,
   SelectContent,
@@ -57,6 +58,7 @@ export default function PeriodSelector({
   const presets = compact ? COMPACT_PRESETS : ALL_PRESETS
 
   function applyPreset(preset: (typeof presets)[number]) {
+    trackEvent('period_preset', { period: preset.label })
     if (preset.month) {
       const found = months.find((m) => m >= preset.month!) || months[0]
       onStartChange(found)

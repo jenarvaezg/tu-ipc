@@ -2,6 +2,8 @@ import { useState, useRef, useCallback, type RefObject } from 'react'
 import { Button } from '@/components/ui/button'
 import { Share2, Loader2, Check } from 'lucide-react'
 import ShareCard from '@/components/ShareCard'
+import { formatMonth } from '@/utils/formatMonth'
+import { trackEvent } from '@/utils/analytics'
 
 interface ShareButtonProps {
   personalIPC: number
@@ -43,17 +45,28 @@ export default function ShareButton({
       const blob = await res.blob()
       const file = new File([blob], 'mi-ipc-personal.png', { type: 'image/png' })
 
-      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+      const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent)
+      if (isMobile && navigator.share && navigator.canShare?.({ files: [file] })) {
+        const sign = personalIPC >= 0 ? '+' : ''
+        const diffSign = difference >= 0 ? '+' : ''
+        const period = `${formatMonth(startMonth)} – ${formatMonth(endMonth)}`
+        const diffText = difference === 0
+          ? 'igual que el IPC oficial'
+          : `${diffSign}${difference.toFixed(2)}pp vs el IPC oficial`
+
         await navigator.share({
           files: [file],
           title: 'Mi IPC Personal',
-          text: `Mi inflación personal: ${personalIPC >= 0 ? '+' : ''}${personalIPC.toFixed(2)}%`,
+          text: `Mi inflación personal: ${sign}${personalIPC.toFixed(2)}% (${diffText})\n${period}\n\nDescubre la tuya en tu-ipc.es`,
+          url: window.location.href,
         })
+        trackEvent('share_image', { method: 'native' })
       } else {
         const link = document.createElement('a')
         link.href = dataUrl
         link.download = 'mi-ipc-personal.png'
         link.click()
+        trackEvent('share_image', { method: 'download' })
       }
 
       setState('done')
@@ -62,7 +75,7 @@ export default function ShareButton({
       console.error('Error generating image:', err)
       setState('idle')
     }
-  }, [personalIPC, state, chartRef])
+  }, [personalIPC, difference, startMonth, endMonth, state, chartRef])
 
   const title = state === 'generating' ? 'Generando...' : state === 'done' ? '¡Compartido!' : 'Compartir imagen'
 

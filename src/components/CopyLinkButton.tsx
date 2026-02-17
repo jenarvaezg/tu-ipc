@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Link2, Check } from 'lucide-react'
+import { trackEvent } from '@/utils/analytics'
 
 export default function CopyLinkButton() {
   const [copied, setCopied] = useState(false)
@@ -8,6 +9,7 @@ export default function CopyLinkButton() {
   const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(window.location.href)
+      trackEvent('copy_link')
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
@@ -18,6 +20,7 @@ export default function CopyLinkButton() {
       input.select()
       document.execCommand('copy')
       document.body.removeChild(input)
+      trackEvent('copy_link')
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }

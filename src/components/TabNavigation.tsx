@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button'
+import { trackEvent } from '@/utils/analytics'
 
 interface TabNavigationProps {
   activeTab: string
@@ -25,7 +26,7 @@ export default function TabNavigation({ activeTab, onTabChange }: TabNavigationP
             aria-controls={`${tab.id}-panel`}
             variant={activeTab === tab.id ? 'default' : 'secondary'}
             size="sm"
-            onClick={() => onTabChange(tab.id)}
+            onClick={() => { trackEvent('tab_change', { tab: tab.id }); onTabChange(tab.id) }}
             className={
               activeTab === tab.id
                 ? ''

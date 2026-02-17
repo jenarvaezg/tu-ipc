@@ -3,6 +3,7 @@ import { computeIPC, computeYoY } from '@/hooks/useIPCCalculator'
 import { PRESETS } from '@/data/presets'
 import type { IPCCategory, IPCData } from '@/data/types'
 import ipcDataRaw from '@/data/ipc-data.json'
+import { trackEvent } from '@/utils/analytics'
 
 const ipcData = ipcDataRaw as IPCData
 
@@ -51,11 +52,13 @@ export function useComparisons(
   }, [comparisonResults, regionComparisonResults])
 
   const handleToggleComparison = useCallback((presetId: string) => {
-    setComparisonIds(prev =>
-      prev.includes(presetId)
-        ? prev.filter(id => id !== presetId)
-        : [...prev, presetId]
-    )
+    setComparisonIds(prev => {
+      if (prev.includes(presetId)) {
+        return prev.filter(id => id !== presetId)
+      }
+      trackEvent('comparison_add', { preset_id: presetId })
+      return [...prev, presetId]
+    })
   }, [])
 
   const handleClearComparisons = useCallback(() => {
@@ -63,9 +66,13 @@ export function useComparisons(
   }, [])
 
   const handleToggleRegionComparison = useCallback((regionCode: string) => {
-    setComparisonRegions(prev =>
-      prev.includes(regionCode) ? prev.filter(r => r !== regionCode) : [...prev, regionCode]
-    )
+    setComparisonRegions(prev => {
+      if (prev.includes(regionCode)) {
+        return prev.filter(r => r !== regionCode)
+      }
+      trackEvent('region_compare', { region: regionCode })
+      return [...prev, regionCode]
+    })
   }, [])
 
   const handleClearRegionComparisons = useCallback(() => {

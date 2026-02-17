@@ -21,26 +21,28 @@ export default function Header({ lastUpdated, dataMonth, onMethodology, onOpenFi
       })
 
   return (
-    <header className="text-center mb-6 animate-fade-in relative">
-      <div className="absolute right-0 top-0 flex items-center gap-1">
-        {onOpenFilters && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={onOpenFilters}
-            aria-label="Abrir filtros"
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-          </Button>
-        )}
-        {actions}
-        <ThemeToggle />
+    <header className="mb-6 animate-fade-in">
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+          Tu IPC Personal
+        </h1>
+        <div className="flex items-center gap-1 shrink-0">
+          {onOpenFilters && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={onOpenFilters}
+              aria-label="Abrir filtros"
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+            </Button>
+          )}
+          {actions}
+          <ThemeToggle />
+        </div>
       </div>
-      <h1 className="text-3xl font-bold tracking-tight mb-2">
-        Tu IPC Personal
-      </h1>
-      <p className="text-lg text-muted-foreground mb-2">
+      <p className="text-lg text-muted-foreground mb-2 text-center">
         Calcula tu inflación real según tus hábitos de consumo
       </p>
       <p className="text-sm text-muted-foreground/60">

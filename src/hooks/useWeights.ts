@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { CATEGORIES, OFFICIAL_WEIGHTS } from '@/data/categories'
 import { redistributeWeights } from '@/utils/weightRedistribution'
 import { debounce } from '@/utils/debounce'
+import { trackEvent } from '@/utils/analytics'
 
 const STORAGE_KEY = 'tu-ipc-weights'
 const STORAGE_KEY_LOCKED = 'tu-ipc-locked'
@@ -44,12 +45,17 @@ export function useWeights(initialWeights?: Record<string, number>) {
 
   // Debounced saveWeights
   const debouncedSaveWeightsRef = useRef(debounce(saveWeights, 300))
+  const hasTrackedCustomize = useRef(false)
 
   useEffect(() => {
     return () => debouncedSaveWeightsRef.current.cancel()
   }, [])
 
   const handleWeightChange = useCallback((code: string, newValue: number) => {
+    if (!hasTrackedCustomize.current) {
+      hasTrackedCustomize.current = true
+      trackEvent('weights_customize')
+    }
     setWeights((prev) => {
       const next = redistributeWeights(prev, code, newValue, locked)
       debouncedSaveWeightsRef.current(next)

@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CATEGORIES, OFFICIAL_WEIGHTS } from '@/data/categories'
 import { Info, ArrowLeft, ArrowRight } from 'lucide-react'
+import { trackEvent } from '@/utils/analytics'
 
 interface OnboardingQuizProps {
   onComplete: (weights: Record<string, number>) => void
@@ -452,7 +453,9 @@ export default function OnboardingQuiz({ onComplete, onSkip }: OnboardingQuizPro
   }, [step, showSummary])
 
   const handleComplete = useCallback(() => {
-    onComplete(computeWeights(answers))
+    const w = computeWeights(answers)
+    trackEvent('quiz_complete')
+    onComplete(w)
   }, [answers, onComplete])
 
   const finalWeights = useMemo(() => computeWeights(answers), [answers])
@@ -528,7 +531,7 @@ export default function OnboardingQuiz({ onComplete, onSkip }: OnboardingQuizPro
         </Card>
 
         <div className="text-center mt-4">
-          <Button variant="ghost" size="sm" onClick={onSkip} className="text-muted-foreground">
+          <Button variant="ghost" size="sm" onClick={() => { trackEvent('quiz_skip'); onSkip() }} className="text-muted-foreground">
             Saltar al calculador
           </Button>
         </div>
@@ -643,7 +646,7 @@ export default function OnboardingQuiz({ onComplete, onSkip }: OnboardingQuizPro
       </div>
 
       <div className="text-center mt-3">
-        <Button variant="ghost" size="sm" onClick={onSkip} className="text-muted-foreground">
+        <Button variant="ghost" size="sm" onClick={() => { trackEvent('quiz_skip'); onSkip() }} className="text-muted-foreground">
           Saltar al calculador
         </Button>
       </div>

@@ -5,7 +5,9 @@ import { useIPCCalculator, computeYoY } from '@/hooks/useIPCCalculator'
 import { parseURLState, syncToURL } from '@/hooks/useURLState'
 import { useWeights } from '@/hooks/useWeights'
 import { useComparisons } from '@/hooks/useComparisons'
+import { useDocumentMeta } from '@/hooks/useDocumentMeta'
 import { debounce } from '@/utils/debounce'
+import { trackEvent } from '@/utils/analytics'
 import Header from '@/components/Header'
 import KPICards from '@/components/KPICards'
 import TabNavigation from '@/components/TabNavigation'
@@ -146,6 +148,7 @@ export default function App() {
   )
 
   const handleRegionChange = useCallback((code: string) => {
+    trackEvent('region_change', { region: code })
     setRegion(code)
     saveRegion(code)
   }, [])
@@ -183,6 +186,7 @@ export default function App() {
   }, [handlePresetSelect])
 
   const navigateToMethodology = useCallback(() => {
+    trackEvent('methodology_view')
     window.history.pushState({ page: 'methodology' }, '', BASE + 'metodologia')
     setShowMethodology(true)
   }, [])
@@ -212,6 +216,15 @@ export default function App() {
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
+
+  useDocumentMeta(
+    showMethodology
+      ? 'Metodología — Tu IPC Personal'
+      : 'Tu IPC Personal — Descubre tu inflación real en España',
+    showMethodology
+      ? 'Cómo se calcula tu inflación personal: fuente de datos del INE, categorías ECOICOP, encadenamiento de bases y fórmulas.'
+      : 'Ajusta los pesos de gasto a tu estilo de vida y compara tu inflación personal con el IPC oficial del INE. Datos actualizados por comunidad autónoma.',
+  )
 
   if (showMethodology) {
     return (
