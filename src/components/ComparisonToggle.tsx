@@ -26,12 +26,12 @@ export default function ComparisonToggle({ comparisonIds, onToggle, onClear, com
                 size="sm"
                 onClick={() => onToggle(preset.id)}
                 className={cn(
-                  'text-xs h-7 px-2 w-full justify-start',
+                  'text-xs h-7 px-2 w-full justify-start min-w-0',
                   isActive ? 'border-2' : 'hover:bg-primary/10 hover:text-primary transition-colors'
                 )}
                 style={isActive ? { borderColor: color, color } : undefined}
               >
-                {preset.icon} {preset.name}
+                <span className="truncate">{preset.icon} {preset.name}</span>
               </Button>
             )
           })}

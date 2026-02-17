@@ -152,8 +152,18 @@ export default function App() {
     if (quizWeights) {
       handlePresetSelect(quizWeights)
     }
+    window.history.pushState({ page: 'calculator' }, '')
     setShowLanding(false)
   }, [handlePresetSelect])
+
+  // Browser back button returns to landing page
+  useEffect(() => {
+    function handlePopState() {
+      setShowLanding(true)
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
   if (showLanding) {
     return <LandingPage onStart={handleLandingStart} />
