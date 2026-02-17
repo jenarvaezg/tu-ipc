@@ -1,7 +1,7 @@
 node_modules
 dist
 *.png
-!public/og-image.png
+!public/og-image.jpg
 *.jpg
 *.jpeg
 .omc
