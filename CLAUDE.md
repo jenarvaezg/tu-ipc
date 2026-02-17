@@ -77,9 +77,10 @@ Deployed to GitHub Pages via `.github/workflows/deploy.yml`. CI sets `BASE_URL=/
 ## INE Data Notes
 
 - API base: `https://servicios.ine.es/wstempus/js/ES`
-- Data endpoint uses `date=20100101:20261231` for full historical range (193 months)
+- **Two tables, chain-linked:** Table 50913 (base 2021, ECOICOP v1, Dec 2009–Nov 2025) is the primary source. Table 76136 (base 2025, ECOICOP v2, Dec 2024 onwards) extends the series via chain-linking using the last overlap month as conversion factor: `linked_value = new_value * (old_value / new_value)` at overlap month.
+- **ECOICOP v2 category 12 split:** New table splits old "Otros bienes y servicios" into "Seguros y servicios financieros" (12a) + "Cuidado personal..." (12b). The download script combines them using weighted average (3.7% + 4.0%) before chain-linking.
 - Vestido y calzado shows ~13-15% drops every December — this is real (winter sales), not a bug
-- When updating the download script, always verify no v2 series (IDs 418050-418061) overwrite v1 data
+- When updating the download script, always verify no v2 series (IDs 418050-418061) overwrite v1 data in the old table
 
 ## UI Language
 

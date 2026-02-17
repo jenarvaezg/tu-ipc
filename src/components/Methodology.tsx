@@ -140,56 +140,68 @@ export default function Methodology({ onBack }: MethodologyProps) {
           </p>
         </Section>
 
-        <Section title="3. El problema de ECOICOP v1 vs v2">
+        <Section title="3. Cambio de base y encadenamiento">
           <p className="text-muted-foreground mb-3">
-            Desde ~2024-2025, el INE publica simultáneamente series con dos clasificaciones:
+            En enero 2026, el INE cambió la base del IPC de 2021 a 2025, y la clasificación de
+            ECOICOP v1 (12 categorías) a ECOICOP v2 (13 categorías). Esto implica que hay dos
+            tablas de datos con bases incompatibles:
           </p>
           <div className="grid md:grid-cols-2 gap-4 mb-4">
-            <Card className="border-blue-200 bg-blue-50/50">
+            <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/30 dark:border-blue-800">
               <CardContent className="pt-6">
-                <h3 className="font-semibold text-blue-800 mb-2">ECOICOP v1 (clásica)</h3>
-                <ul className="text-sm text-blue-700 space-y-1">
-                  <li>IDs 304092-304104</li>
-                  <li>Series históricas completas desde 2009</li>
-                  <li>Base 2021=100 consistente</li>
+                <h3 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">Tabla 50913 — Base 2021</h3>
+                <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-1">
+                  <li>ECOICOP v1: 12 categorías</li>
+                  <li>Historial completo desde dic 2009</li>
+                  <li>Termina en nov 2025</li>
                 </ul>
               </CardContent>
             </Card>
-            <Card className="border-amber-200 bg-amber-50/50">
+            <Card className="border-amber-200 bg-amber-50/50 dark:bg-amber-950/30 dark:border-amber-800">
               <CardContent className="pt-6">
-                <h3 className="font-semibold text-amber-800 mb-2">ECOICOP v2 (nueva)</h3>
-                <ul className="text-sm text-amber-700 space-y-1">
-                  <li>IDs 418050-418061</li>
-                  <li>Series más cortas, empiezan más tarde</li>
-                  <li>Base diferente (incompatible con v1)</li>
+                <h3 className="font-semibold text-amber-800 dark:text-amber-300 mb-2">Tabla 76136 — Base 2025</h3>
+                <ul className="text-sm text-amber-700 dark:text-amber-400 space-y-1">
+                  <li>ECOICOP v2: 13 categorías</li>
+                  <li>Empieza en dic 2024</li>
+                  <li>Datos actuales y futuros</li>
                 </ul>
               </CardContent>
             </Card>
           </div>
-          <Card className="border-red-200 bg-red-50/50 mb-4">
+          <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/30 dark:border-red-800 mb-4">
             <CardContent className="pt-6">
-              <p className="text-red-800 font-medium mb-1">El problema</p>
-              <p className="text-red-700 text-sm">
-                Si mezclas datos v1 y v2 para la misma categoría, obtienes discontinuidades
-                falsas. Por ejemplo, Restaurantes podría mostrar un salto de 125 → 101 en un
-                solo mes, que no es una caída real sino un cambio de base.
+              <p className="text-red-800 dark:text-red-300 font-medium mb-1">El problema</p>
+              <p className="text-red-700 dark:text-red-400 text-sm">
+                No se pueden mezclar directamente. Un valor de 119.4 (base 2021) y 100.8 (base 2025)
+                para el mismo mes representan el mismo nivel de precios, pero con escalas distintas.
+                Además, la categoría 12 ("Otros bienes y servicios") se ha dividido en dos:
+                "Seguros y servicios financieros" y "Cuidado personal y protección social".
               </p>
             </CardContent>
           </Card>
-          <Card className="border-green-200 bg-green-50/50">
+          <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/30 dark:border-green-800 mb-4">
             <CardContent className="pt-6">
-              <p className="text-green-800 font-medium mb-1">Nuestra solución: "la serie más larga gana"</p>
-              <p className="text-green-700 text-sm mb-2">
-                El script de descarga agrupa todas las series por categoría y selecciona
-                únicamente la que tiene más puntos de datos — que es siempre la v1 (historial
-                completo, base consistente):
+              <p className="text-green-800 dark:text-green-300 font-medium mb-1">Nuestra solución: encadenamiento (chain-linking)</p>
+              <p className="text-green-700 dark:text-green-400 text-sm mb-2">
+                Usamos la tabla antigua como base principal (historial largo y consistente).
+                Para los meses posteriores a noviembre 2025, encadenamos los datos de la tabla
+                nueva usando el último mes de solapamiento como punto de enlace:
               </p>
               <Code>
-{`// Para cada categoría, elegir la serie con más datos
-const sorted = seriesDelMismoGrupo
-  .sort((a, b) => b.puntos - a.puntos)
-const elegida = sorted[0] // Más larga = v1`}
+{`// Factor de enlace: relación entre bases en el mes de solapamiento
+factor = valor_base2021[nov 2025] / valor_base2025[nov 2025]
+
+// Convertir meses nuevos a la escala antigua
+valor_encadenado[dic 2025] = valor_base2025[dic 2025] × factor
+
+// Para la categoría 12 (dividida en v2):
+// Se combinan las dos subcategorías con media ponderada
+cat12_combinada = (3.7 × seguros + 4.0 × cuidado_personal) / 7.7`}
               </Code>
+              <p className="text-green-700 dark:text-green-400 text-sm mt-2">
+                Esto produce una serie continua sin saltos artificiales. Las variaciones
+                porcentuales calculadas sobre la serie encadenada son exactas.
+              </p>
             </CardContent>
           </Card>
         </Section>
@@ -502,7 +514,8 @@ const elegida = sorted[0] // Más larga = v1`}
               <h3 className="font-semibold mb-1">Actualización</h3>
               <p className="text-muted-foreground text-sm">
                 El INE publica nuevos datos del IPC mensualmente, normalmente entre el 10-15
-                del mes siguiente.
+                del mes siguiente. El script de descarga obtiene ambas tablas (base 2021 y base 2025)
+                y encadena automáticamente los meses más recientes.
               </p>
             </div>
           </div>

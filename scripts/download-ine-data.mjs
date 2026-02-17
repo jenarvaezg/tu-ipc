@@ -2,8 +2,20 @@ import { writeFileSync, mkdirSync } from 'fs'
 
 const BASE = 'https://servicios.ine.es/wstempus/js/ES'
 
-// Table 50913: IPC Base 2021, all regions, all ECOICOP categories
-const TABLE_ID = '50913'
+// Table 50913: IPC Base 2021, ECOICOP v1 (12 categories), Dec 2009 – Nov 2025
+const OLD_TABLE = '50913'
+
+// Table 76136: IPC Base 2025, ECOICOP v2 (13 categories), Dec 2024 onwards
+// Used for chain-linking months beyond the old table's range.
+// ECOICOP v2 splits old category 12 into:
+//   12: "Seguros y servicios financieros"
+//   13: "Cuidado personal, protección social, y bienes y servicios diversos"
+const NEW_TABLE = '76136'
+
+// Approximate IPC weights for the two subcategories of old cat 12 (from IPC 2025 base 2021).
+// Used to combine new-12 + new-13 into a synthetic old-12 index before chain-linking.
+const WEIGHT_NEW_12 = 3.7 // Seguros y servicios financieros
+const WEIGHT_NEW_13 = 4.0 // Cuidado personal, protección social...
 
 // Map INE region names (from series "Nombre" field) to our codes
 const REGION_MAP = {
@@ -52,7 +64,7 @@ const REGION_DISPLAY_NAMES = {
   'melilla': 'Melilla',
 }
 
-// Match category from the second part of the series name
+// Category matching for old table (ECOICOP v1, 12 + general)
 const catMap = [
   { code: '00', keywords: ['índice general'], name: 'Índice general' },
   { code: '01', keywords: ['alimentos'], name: 'Alimentos y bebidas no alcohólicas' },
@@ -69,9 +81,28 @@ const catMap = [
   { code: '12', keywords: ['otros bienes', 'cuidado personal', 'seguros y servicio'], name: 'Otros bienes y servicios' },
 ]
 
-function matchCategory(nombre) {
+// Category matching for new table (ECOICOP v2, 13 + general)
+// Uses separate codes '12a' and '12b' for the split categories, combined later.
+const newCatMap = [
+  { code: '00', keywords: ['índice general'] },
+  { code: '01', keywords: ['alimentos'] },
+  { code: '02', keywords: ['alcohólicas', 'tabaco', 'estupefaciente'] },
+  { code: '03', keywords: ['vestido'] },
+  { code: '04', keywords: ['vivienda'] },
+  { code: '05', keywords: ['muebles'] },
+  { code: '06', keywords: ['sanidad'] },
+  { code: '07', keywords: ['transporte'] },
+  { code: '08', keywords: ['información y comunic'] },
+  { code: '09', keywords: ['recreativ'] },
+  { code: '10', keywords: ['educación'] },
+  { code: '11', keywords: ['restaurante'] },
+  { code: '12a', keywords: ['seguros y servicio'] },
+  { code: '12b', keywords: ['cuidado personal'] },
+]
+
+function matchCategory(nombre, map = catMap) {
   const lower = nombre.toLowerCase()
-  for (const cat of catMap) {
+  for (const cat of map) {
     if (cat.keywords.some(kw => lower.includes(kw))) {
       if (cat.code === '02' && lower.includes('alimentos')) continue
       return cat
@@ -80,90 +111,177 @@ function matchCategory(nombre) {
   return null
 }
 
-async function main() {
-  console.log('Descargando datos del IPC del INE (tabla 50913, todas las regiones)...\n')
+function parseSeriesData(dataArray) {
+  const data = {}
+  for (const d of dataArray || []) {
+    const date = new Date(d.Fecha)
+    const year = date.getUTCFullYear()
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+    data[`${year}-${month}`] = d.Valor
+  }
+  return data
+}
 
-  // Fetch all series from table 50913 with full date range
-  const url = `${BASE}/DATOS_TABLA/${TABLE_ID}?date=20100101:20261231`
-  console.log(`URL: ${url}`)
-  console.log('(esto puede tardar ~30s...)\n')
-
+async function fetchTable(tableId, label) {
+  const url = `${BASE}/DATOS_TABLA/${tableId}?date=20091201:20271231`
+  console.log(`  ${label}: ${url}`)
   const resp = await fetch(url)
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${resp.statusText}`)
-  const rawData = await resp.json()
+  if (!resp.ok) throw new Error(`HTTP ${resp.status} fetching ${label}`)
+  return resp.json()
+}
 
-  console.log(`Recibidas ${rawData.length} series del INE\n`)
+async function main() {
+  console.log('Descargando datos del IPC del INE...\n')
+  console.log('Descargando tablas (esto puede tardar ~60s)...')
 
-  // Filter for "Índice." series only (not variations)
-  const indexSeries = rawData.filter(s => s.Nombre?.includes('Índice.'))
-  console.log(`Series de tipo Índice: ${indexSeries.length}`)
+  // Fetch both tables in parallel
+  const [oldRaw, newRaw] = await Promise.all([
+    fetchTable(OLD_TABLE, `Tabla ${OLD_TABLE} (base 2021, ECOICOP v1)`),
+    fetchTable(NEW_TABLE, `Tabla ${NEW_TABLE} (base 2025, ECOICOP v2)`),
+  ])
 
-  // Parse each series: "Region. Category. Índice."
+  console.log(`\nTabla vieja: ${oldRaw.length} series`)
+  console.log(`Tabla nueva: ${newRaw.length} series\n`)
+
+  // ─── Step 1: Parse old table (base 2021) ──────────────────────────────
+  console.log('Paso 1: Procesando tabla base 2021...')
+
+  const oldIndexSeries = oldRaw.filter(s => s.Nombre?.includes('Índice.'))
   const regions = {}
   const allMonths = new Set()
   let matched = 0
-  let unmatched = 0
 
-  for (const series of indexSeries) {
+  for (const series of oldIndexSeries) {
     const parts = series.Nombre.split('.')
     if (parts.length < 3) continue
 
-    const regionName = parts[0].trim()
-    const categoryPart = parts[1].trim()
-    const regionCode = REGION_MAP[regionName]
+    const regionCode = REGION_MAP[parts[0].trim()]
+    if (!regionCode) continue
 
-    if (!regionCode) {
-      console.log(`  Región desconocida: "${regionName}"`)
-      unmatched++
-      continue
-    }
+    const cat = matchCategory(parts[1].trim(), catMap)
+    if (!cat) continue
 
-    const cat = matchCategory(categoryPart)
-    if (!cat) {
-      unmatched++
-      continue
-    }
-
-    // Initialize region if needed
     if (!regions[regionCode]) {
-      regions[regionCode] = {
-        name: REGION_DISPLAY_NAMES[regionCode],
-        categories: {},
-      }
+      regions[regionCode] = { name: REGION_DISPLAY_NAMES[regionCode], categories: {} }
     }
 
-    // For each category, keep the longest series (v1 wins over v2)
+    // Keep the longest series per category (v1 wins over v2)
     const existing = regions[regionCode].categories[cat.code]
     const newPoints = (series.Data || []).length
-
     if (existing && existing._points >= newPoints) continue
 
-    const data = {}
-    for (const d of series.Data || []) {
-      const date = new Date(d.Fecha)
-      const year = date.getUTCFullYear()
-      const month = String(date.getUTCMonth() + 1).padStart(2, '0')
-      const label = `${year}-${month}`
-      data[label] = d.Valor
-      allMonths.add(label)
-    }
+    const data = parseSeriesData(series.Data)
+    for (const m of Object.keys(data)) allMonths.add(m)
 
     regions[regionCode].categories[cat.code] = { name: cat.name, data, _points: newPoints }
     matched++
   }
 
-  // Remove the _points helper field
+  console.log(`  ${matched} series procesadas`)
+
+  // Find the last month in the old data
+  const oldMonths = [...allMonths].sort()
+  const lastOldMonth = oldMonths[oldMonths.length - 1]
+  console.log(`  Rango viejo: ${oldMonths[0]} → ${lastOldMonth}`)
+
+  // ─── Step 2: Parse new table (base 2025) ──────────────────────────────
+  console.log('\nPaso 2: Procesando tabla base 2025...')
+
+  const newIndexSeries = newRaw.filter(s => s.Nombre?.includes('Índice.'))
+  // Temporary structure: newData[regionCode][catCode] = { month: value }
+  const newData = {}
+
+  for (const series of newIndexSeries) {
+    const parts = series.Nombre.split('.')
+    if (parts.length < 3) continue
+
+    const regionCode = REGION_MAP[parts[0].trim()]
+    if (!regionCode) continue
+
+    const cat = matchCategory(parts[1].trim(), newCatMap)
+    if (!cat) continue
+
+    if (!newData[regionCode]) newData[regionCode] = {}
+
+    const data = parseSeriesData(series.Data)
+    newData[regionCode][cat.code] = data
+  }
+
+  // Combine 12a + 12b into synthetic 12 using weighted average
+  for (const regionCode of Object.keys(newData)) {
+    const rd = newData[regionCode]
+    if (rd['12a'] && rd['12b']) {
+      const combined = {}
+      const allKeys = new Set([...Object.keys(rd['12a']), ...Object.keys(rd['12b'])])
+      for (const m of allKeys) {
+        const v12a = rd['12a'][m]
+        const v12b = rd['12b'][m]
+        if (v12a != null && v12b != null) {
+          combined[m] = (WEIGHT_NEW_12 * v12a + WEIGHT_NEW_13 * v12b) / (WEIGHT_NEW_12 + WEIGHT_NEW_13)
+        }
+      }
+      rd['12'] = combined
+      delete rd['12a']
+      delete rd['12b']
+    }
+  }
+
+  const newMonths = new Set()
+  for (const rd of Object.values(newData)) {
+    for (const catData of Object.values(rd)) {
+      for (const m of Object.keys(catData)) newMonths.add(m)
+    }
+  }
+  const sortedNewMonths = [...newMonths].sort()
+  console.log(`  Rango nuevo: ${sortedNewMonths[0]} → ${sortedNewMonths[sortedNewMonths.length - 1]}`)
+
+  // ─── Step 3: Chain-link new months onto old data ──────────────────────
+  // For each region+category, use the last overlap month to compute a conversion factor:
+  //   link_factor = old_value / new_value  (at overlap month)
+  //   extended_value = new_value * link_factor  (for months beyond old data)
+  console.log(`\nPaso 3: Encadenando series (enlace en ${lastOldMonth})...`)
+
+  let extended = 0
+  let skipped = 0
+
+  for (const [regionCode, region] of Object.entries(regions)) {
+    const regionNew = newData[regionCode]
+    if (!regionNew) continue
+
+    for (const [catCode, catObj] of Object.entries(region.categories)) {
+      const newCatData = regionNew[catCode]
+      if (!newCatData) continue
+
+      const oldValue = catObj.data[lastOldMonth]
+      const newValue = newCatData[lastOldMonth]
+
+      if (oldValue == null || newValue == null || newValue === 0) {
+        skipped++
+        continue
+      }
+
+      const linkFactor = oldValue / newValue
+
+      // Append months that exist in new data but not in old
+      for (const m of sortedNewMonths) {
+        if (m <= lastOldMonth) continue
+        if (newCatData[m] == null) continue
+
+        catObj.data[m] = Math.round(newCatData[m] * linkFactor * 1000) / 1000
+        allMonths.add(m)
+        extended++
+      }
+    }
+  }
+
+  console.log(`  ${extended} puntos de datos añadidos`)
+  if (skipped > 0) console.log(`  ${skipped} categorías sin enlace (falta overlap)`)
+
+  // ─── Step 4: Cleanup and write ────────────────────────────────────────
   for (const region of Object.values(regions)) {
     for (const cat of Object.values(region.categories)) {
       delete cat._points
     }
-  }
-
-  // Summary
-  console.log(`\nSeries procesadas: ${matched} matched, ${unmatched} sin match`)
-  for (const [code, region] of Object.entries(regions)) {
-    const catCount = Object.keys(region.categories).length
-    console.log(`  ✓ ${region.name}: ${catCount} categorías`)
   }
 
   const months = [...allMonths].sort()
@@ -176,9 +294,20 @@ async function main() {
   mkdirSync('src/data', { recursive: true })
   writeFileSync('src/data/ipc-data.json', JSON.stringify(output))
 
+  // Summary
   const sizeKB = (Buffer.byteLength(JSON.stringify(output)) / 1024).toFixed(0)
   console.log(`\n✅ Guardado: ${months.length} meses, ${Object.keys(regions).length} regiones (${sizeKB} KB)`)
   console.log(`   Rango: ${months[0]} → ${months[months.length - 1]}`)
+
+  // Verify chain-link for nacional/00 (general index)
+  const nacGeneral = regions['nacional']?.categories['00']?.data
+  if (nacGeneral) {
+    const lastMonth = months[months.length - 1]
+    const prevMonth = months[months.length - 2]
+    console.log(`\n   Verificación (nacional, índice general):`)
+    console.log(`   ${prevMonth}: ${nacGeneral[prevMonth]}`)
+    console.log(`   ${lastMonth}: ${nacGeneral[lastMonth]}`)
+  }
 }
 
 main().catch(err => {
