@@ -11,17 +11,18 @@ interface RegionComparisonProps {
   onToggle: (regionCode: string) => void
   onClear: () => void
   maxComparisons: number
+  compact?: boolean
 }
 
-export default function RegionComparison({ currentRegion, comparisonRegions, onToggle, onClear, maxComparisons }: RegionComparisonProps) {
+export default function RegionComparison({ currentRegion, comparisonRegions, onToggle, onClear, maxComparisons, compact }: RegionComparisonProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const availableRegions = REGIONS.filter(r => r.code !== currentRegion)
 
   return (
-    <div className="mb-6">
+    <div className={compact ? '' : 'mb-6'}>
       {/* Active region badges — always visible */}
       {comparisonRegions.length > 0 && (
-        <div className="flex flex-wrap items-center justify-center gap-1.5 mb-2">
+        <div className={`flex flex-wrap items-center gap-1.5 mb-2 ${compact ? 'justify-start' : 'justify-center'}`}>
           {comparisonRegions.map((code, i) => {
             const region = REGIONS.find(r => r.code === code)
             if (!region) return null
@@ -51,12 +52,12 @@ export default function RegionComparison({ currentRegion, comparisonRegions, onT
       )}
 
       {/* Toggle button */}
-      <div className="flex justify-center">
+      <div className={compact ? '' : 'flex justify-center'}>
         <Button
           variant="secondary"
           size="sm"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="text-xs hover:bg-primary/10 hover:text-primary transition-colors"
+          className={`text-xs hover:bg-primary/10 hover:text-primary transition-colors ${compact ? 'w-full justify-start' : ''}`}
         >
           Comparar regiones
           {comparisonRegions.length > 0 && ` (${comparisonRegions.length})`}
@@ -66,7 +67,7 @@ export default function RegionComparison({ currentRegion, comparisonRegions, onT
 
       {/* Expandable region grid */}
       {isExpanded && (
-        <div className="flex flex-wrap justify-center gap-1.5 mt-3">
+        <div className={`flex flex-wrap gap-1.5 mt-3 ${compact ? 'justify-start' : 'justify-center'}`}>
           {availableRegions.map((region) => {
             const idx = comparisonRegions.indexOf(region.code)
             const isActive = idx !== -1

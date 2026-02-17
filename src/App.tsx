@@ -8,8 +8,6 @@ import { useComparisons } from '@/hooks/useComparisons'
 import { debounce } from '@/utils/debounce'
 import Header from '@/components/Header'
 import KPICards from '@/components/KPICards'
-import RegionSelector from '@/components/RegionSelector'
-import PeriodSelector from '@/components/PeriodSelector'
 import TabNavigation from '@/components/TabNavigation'
 import WeightSliders from '@/components/WeightSliders'
 import CategoryBreakdown from '@/components/CategoryBreakdown'
@@ -19,8 +17,7 @@ import CopyLinkButton from '@/components/CopyLinkButton'
 import NarrativeSummary from '@/components/NarrativeSummary'
 import ShareSuggestion from '@/components/ShareSuggestion'
 import Footer from '@/components/Footer'
-import ComparisonToggle from '@/components/ComparisonToggle'
-import RegionComparison from '@/components/RegionComparison'
+import FilterSidebar from '@/components/FilterSidebar'
 import LandingPage from '@/components/LandingPage'
 
 const EvolutionChart = lazy(() => import('@/components/EvolutionChart'))
@@ -149,6 +146,8 @@ export default function App() {
     }
   }, [showLanding, weights, startMonth, endMonth, region, activeTab, comparisonIds, comparisonRegions])
 
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+
   const handleLandingStart = useCallback((quizWeights?: Record<string, number>) => {
     if (quizWeights) {
       handlePresetSelect(quizWeights)
@@ -190,120 +189,125 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <Header
-          lastUpdated={ipcData.lastUpdated}
-          onMethodology={() => setPage('methodology')}
-          actions={
-            <div className="flex items-center gap-1">
-              <CopyLinkButton />
-              <ShareButton
-                personalIPC={result.personalIPC}
-                officialIPC={result.officialIPC}
-                difference={result.difference}
-                startMonth={startMonth}
-                endMonth={endMonth}
-                region={region}
-                isCustom={isCustom}
-                chartRef={chartRef}
-              />
-            </div>
-          }
-        />
-        <KPICards
-          personalIPC={result.personalIPC}
-          officialIPC={result.officialIPC}
-          difference={result.difference}
-          comparisons={allComparisons.map(c => ({ label: c.label, ipc: c.result.personalIPC }))}
-          isCustom={isCustom}
-          startMonth={startMonth}
-          endMonth={endMonth}
-        />
-        {isCustom && (
-          <NarrativeSummary
-            breakdown={result.breakdown}
+    <div className="min-h-screen lg:flex">
+      {/* Sidebar — desktop: visible, mobile: Sheet */}
+      <FilterSidebar
+        region={region}
+        onRegionChange={handleRegionChange}
+        months={months}
+        startMonth={startMonth}
+        endMonth={endMonth}
+        onStartChange={setStartMonth}
+        onEndChange={setEndMonth}
+        comparisonIds={comparisonIds}
+        onToggleComparison={handleToggleComparison}
+        onClearComparisons={handleClearComparisons}
+        currentRegion={region}
+        comparisonRegions={comparisonRegions}
+        onToggleRegionComparison={handleToggleRegionComparison}
+        onClearRegionComparisons={handleClearRegionComparisons}
+        maxRegionComparisons={4 - allComparisons.length + regionComparisonResults.length}
+        mobileOpen={mobileFiltersOpen}
+        onMobileOpenChange={setMobileFiltersOpen}
+      />
+
+      {/* Main content */}
+      <main className="flex-1 min-w-0">
+        <div className="max-w-4xl mx-auto px-4 py-6 lg:py-8">
+          <Header
+            lastUpdated={ipcData.lastUpdated}
+            onMethodology={() => setPage('methodology')}
+            onOpenFilters={() => setMobileFiltersOpen(true)}
+            actions={
+              <div className="flex items-center gap-1">
+                <CopyLinkButton />
+                <ShareButton
+                  personalIPC={result.personalIPC}
+                  officialIPC={result.officialIPC}
+                  difference={result.difference}
+                  startMonth={startMonth}
+                  endMonth={endMonth}
+                  region={region}
+                  isCustom={isCustom}
+                  chartRef={chartRef}
+                />
+              </div>
+            }
+          />
+          <KPICards
             personalIPC={result.personalIPC}
+            officialIPC={result.officialIPC}
             difference={result.difference}
+            comparisons={allComparisons.map(c => ({ label: c.label, ipc: c.result.personalIPC }))}
+            isCustom={isCustom}
             startMonth={startMonth}
             endMonth={endMonth}
           />
-        )}
-        <ShareSuggestion difference={result.difference} isCustom={isCustom} personalIPC={result.personalIPC} />
-        <RegionSelector value={region} onChange={handleRegionChange} />
-        <PeriodSelector
-          months={months}
-          startMonth={startMonth}
-          endMonth={endMonth}
-          onStartChange={setStartMonth}
-          onEndChange={setEndMonth}
-        />
-        <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-        {activeTab === 'evolucion' && (
-          <div role="tabpanel" id="evolucion-panel" aria-labelledby="evolucion-tab">
-            <ComparisonToggle
-              comparisonIds={comparisonIds}
-              onToggle={handleToggleComparison}
-              onClear={handleClearComparisons}
+          {isCustom && (
+            <NarrativeSummary
+              breakdown={result.breakdown}
+              personalIPC={result.personalIPC}
+              difference={result.difference}
+              startMonth={startMonth}
+              endMonth={endMonth}
             />
-            <RegionComparison
-              currentRegion={region}
-              comparisonRegions={comparisonRegions}
-              onToggle={handleToggleRegionComparison}
-              onClear={handleClearRegionComparisons}
-              maxComparisons={4 - allComparisons.length + regionComparisonResults.length}
-            />
-            <Suspense fallback={<LazyFallback />}>
-              <EvolutionChart
-                ref={chartRef}
-                data={result.evolution}
-                yoyData={yoyEvolution}
-                comparisons={allComparisons.map(c => ({ label: c.label, data: c.result.evolution, yoyData: c.yoyEvolution }))}
-                isCustom={isCustom}
-              />
-            </Suspense>
-          </div>
-        )}
-        {activeTab === 'desglose' && (
-          <div role="tabpanel" id="desglose-panel" aria-labelledby="desglose-tab">
-            <PresetSelector weights={weights} onSelect={handlePresetSelect} />
-            <WeightSliders
-              weights={weights}
-              locked={locked}
-              onChange={handleWeightChange}
-              onToggleLock={handleToggleLock}
-              onReset={handleReset}
-              categoryVariations={categoryVariations}
-            />
-            <CategoryBreakdown breakdown={result.breakdown} />
-          </div>
-        )}
-        {activeTab === 'sueldo' && (
-          <div role="tabpanel" id="sueldo-panel" aria-labelledby="sueldo-tab">
-            <Suspense fallback={<LazyFallback />}>
-              <SalaryCalculator
-                personalIPC={result.personalIPC}
-                startMonth={startMonth}
-                endMonth={endMonth}
-              />
-            </Suspense>
-          </div>
-        )}
-        {activeTab === 'regiones' && (
-          <div role="tabpanel" id="regiones-panel" aria-labelledby="regiones-tab">
-            <Suspense fallback={<LazyFallback />}>
-              <RegionRanking
-                ipcData={ipcData}
+          )}
+          <ShareSuggestion difference={result.difference} isCustom={isCustom} personalIPC={result.personalIPC} />
+          <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+          {activeTab === 'evolucion' && (
+            <div role="tabpanel" id="evolucion-panel" aria-labelledby="evolucion-tab">
+              <Suspense fallback={<LazyFallback />}>
+                <EvolutionChart
+                  ref={chartRef}
+                  data={result.evolution}
+                  yoyData={yoyEvolution}
+                  comparisons={allComparisons.map(c => ({ label: c.label, data: c.result.evolution, yoyData: c.yoyEvolution }))}
+                  isCustom={isCustom}
+                />
+              </Suspense>
+            </div>
+          )}
+          {activeTab === 'desglose' && (
+            <div role="tabpanel" id="desglose-panel" aria-labelledby="desglose-tab">
+              <PresetSelector weights={weights} onSelect={handlePresetSelect} />
+              <WeightSliders
                 weights={weights}
-                startMonth={startMonth}
-                endMonth={endMonth}
-                currentRegion={region}
+                locked={locked}
+                onChange={handleWeightChange}
+                onToggleLock={handleToggleLock}
+                onReset={handleReset}
+                categoryVariations={categoryVariations}
               />
-            </Suspense>
-          </div>
-        )}
-        <Footer onMethodology={() => setPage('methodology')} />
-      </div>
+              <CategoryBreakdown breakdown={result.breakdown} />
+            </div>
+          )}
+          {activeTab === 'sueldo' && (
+            <div role="tabpanel" id="sueldo-panel" aria-labelledby="sueldo-tab">
+              <Suspense fallback={<LazyFallback />}>
+                <SalaryCalculator
+                  personalIPC={result.personalIPC}
+                  startMonth={startMonth}
+                  endMonth={endMonth}
+                />
+              </Suspense>
+            </div>
+          )}
+          {activeTab === 'regiones' && (
+            <div role="tabpanel" id="regiones-panel" aria-labelledby="regiones-tab">
+              <Suspense fallback={<LazyFallback />}>
+                <RegionRanking
+                  ipcData={ipcData}
+                  weights={weights}
+                  startMonth={startMonth}
+                  endMonth={endMonth}
+                  currentRegion={region}
+                />
+              </Suspense>
+            </div>
+          )}
+          <Footer onMethodology={() => setPage('methodology')} />
+        </div>
+      </main>
     </div>
   )
 }

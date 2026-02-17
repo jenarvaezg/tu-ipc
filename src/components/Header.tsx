@@ -1,26 +1,39 @@
 import { Button } from '@/components/ui/button'
 import ThemeToggle from '@/components/ThemeToggle'
+import { SlidersHorizontal } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 interface HeaderProps {
   lastUpdated: string
   onMethodology?: () => void
+  onOpenFilters?: () => void
   actions?: ReactNode
 }
 
-export default function Header({ lastUpdated, onMethodology, actions }: HeaderProps) {
+export default function Header({ lastUpdated, onMethodology, onOpenFilters, actions }: HeaderProps) {
   const dateStr = new Date(lastUpdated).toLocaleDateString('es-ES', {
     year: 'numeric',
     month: 'long',
   })
 
   return (
-    <header className="text-center mb-10 animate-fade-in relative">
+    <header className="text-center mb-6 animate-fade-in relative">
       <div className="absolute right-0 top-0 flex items-center gap-1">
+        {onOpenFilters && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={onOpenFilters}
+            aria-label="Abrir filtros"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+          </Button>
+        )}
         {actions}
         <ThemeToggle />
       </div>
-      <h1 className="text-5xl font-bold tracking-tight mb-3">
+      <h1 className="text-3xl font-bold tracking-tight mb-2">
         Tu IPC Personal
       </h1>
       <p className="text-lg text-muted-foreground mb-2">

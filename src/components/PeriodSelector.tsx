@@ -14,6 +14,7 @@ interface PeriodSelectorProps {
   endMonth: string
   onStartChange: (month: string) => void
   onEndChange: (month: string) => void
+  compact?: boolean
 }
 
 const MONTH_NAMES = [
@@ -32,10 +33,11 @@ export default function PeriodSelector({
   endMonth,
   onStartChange,
   onEndChange,
+  compact,
 }: PeriodSelectorProps) {
   const lastMonth = months[months.length - 1]
 
-  const presets = [
+  const ALL_PRESETS = [
     { label: 'Último año', offset: 12 },
     { label: 'Últimos 2 años', offset: 24 },
     { label: 'Últimos 5 años', offset: 60 },
@@ -44,6 +46,15 @@ export default function PeriodSelector({
     { label: 'Desde 2015', month: '2015-01' },
     { label: 'Todo el histórico', month: '2000-01' },
   ]
+
+  const COMPACT_PRESETS = [
+    { label: '1 año', offset: 12 },
+    { label: '2 años', offset: 24 },
+    { label: '5 años', offset: 60 },
+    { label: 'Máximo', month: '2000-01' },
+  ]
+
+  const presets = compact ? COMPACT_PRESETS : ALL_PRESETS
 
   function applyPreset(preset: (typeof presets)[number]) {
     if (preset.month) {
@@ -54,6 +65,66 @@ export default function PeriodSelector({
       onStartChange(months[idx])
     }
     onEndChange(lastMonth)
+  }
+
+  if (compact) {
+    return (
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-1.5">
+          {presets.map((p) => (
+            <Button
+              key={p.label}
+              variant="secondary"
+              size="sm"
+              onClick={() => applyPreset(p)}
+              className="text-xs h-7 px-2.5 hover:bg-primary/10 hover:text-primary transition-colors"
+            >
+              {p.label}
+            </Button>
+          ))}
+        </div>
+        <div className="space-y-2">
+          <div>
+            <label className="block text-xs text-muted-foreground mb-1">Desde</label>
+            <Select value={startMonth} onValueChange={(v) => {
+              onStartChange(v)
+              if (v >= endMonth) {
+                const nextIdx = months.indexOf(v) + 1
+                if (nextIdx < months.length) onEndChange(months[nextIdx])
+              }
+            }}>
+              <SelectTrigger className="w-full h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map((m) => (
+                  <SelectItem key={m} value={m}>{formatMonth(m)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <label className="block text-xs text-muted-foreground mb-1">Hasta</label>
+            <Select value={endMonth} onValueChange={(v) => {
+              onEndChange(v)
+              if (v <= startMonth) {
+                const prevIdx = months.indexOf(v) - 1
+                if (prevIdx >= 0) onStartChange(months[prevIdx])
+              }
+            }}>
+              <SelectTrigger className="w-full h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map((m) => (
+                  <SelectItem key={m} value={m}>{formatMonth(m)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (

@@ -14,8 +14,8 @@ const TABS = [
 
 export default function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
   return (
-    <div className="mb-8" role="tablist" aria-label="Secciones de la calculadora">
-      <div className="flex flex-wrap gap-2 justify-center">
+    <div className="mb-4" role="tablist" aria-label="Secciones de la calculadora">
+      <div className="flex flex-wrap gap-2 justify-start">
         {TABS.map((tab) => (
           <Button
             key={tab.id}

@@ -1,14 +1,55 @@
 import { Button } from '@/components/ui/button'
 import { PRESETS } from '@/data/presets'
 import { COMPARISON_COLORS } from '@/data/constants'
+import { cn } from '@/lib/utils'
 
 interface ComparisonToggleProps {
   comparisonIds: string[]
   onToggle: (presetId: string) => void
   onClear: () => void
+  compact?: boolean
 }
 
-export default function ComparisonToggle({ comparisonIds, onToggle, onClear }: ComparisonToggleProps) {
+export default function ComparisonToggle({ comparisonIds, onToggle, onClear, compact }: ComparisonToggleProps) {
+  if (compact) {
+    return (
+      <div>
+        <div className="grid grid-cols-2 gap-1.5">
+          {PRESETS.filter(p => p.id !== 'oficial').map((preset) => {
+            const idx = comparisonIds.indexOf(preset.id)
+            const isActive = idx !== -1
+            const color = isActive ? COMPARISON_COLORS[idx % COMPARISON_COLORS.length] : undefined
+            return (
+              <Button
+                key={preset.id}
+                variant={isActive ? 'outline' : 'secondary'}
+                size="sm"
+                onClick={() => onToggle(preset.id)}
+                className={cn(
+                  'text-xs h-7 px-2 w-full justify-start',
+                  isActive ? 'border-2' : 'hover:bg-primary/10 hover:text-primary transition-colors'
+                )}
+                style={isActive ? { borderColor: color, color } : undefined}
+              >
+                {preset.icon} {preset.name}
+              </Button>
+            )
+          })}
+        </div>
+        {comparisonIds.length > 0 && (
+          <Button
+            variant="link"
+            size="sm"
+            onClick={onClear}
+            className="text-xs text-muted-foreground hover:text-foreground mt-1 h-auto p-0"
+          >
+            Quitar todo
+          </Button>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-wrap items-center justify-center gap-2 mb-6">
       <span className="text-sm text-muted-foreground mr-1">Comparar con:</span>
