@@ -43,4 +43,16 @@ describe('KPICards', () => {
     const personalValue = screen.getByText('-1.00%')
     expect(personalValue.className).toContain('emerald')
   })
+
+  it('shows all three cards when isCustom is false', () => {
+    render(<KPICards startMonth="2024-01" endMonth="2025-01" personalIPC={2.5} officialIPC={2.1} difference={0.4} isCustom={false} />)
+    expect(screen.getByText('Tu IPC personal')).toBeInTheDocument()
+    expect(screen.getByText('IPC oficial')).toBeInTheDocument()
+    expect(screen.getByText('Diferencia')).toBeInTheDocument()
+  })
+
+  it('shows banner to customize weights when isCustom is false', () => {
+    render(<KPICards startMonth="2024-01" endMonth="2025-01" personalIPC={2.5} officialIPC={2.1} difference={0.4} isCustom={false} />)
+    expect(screen.getByText('Ajusta tus pesos de gasto para calcular tu IPC personal')).toBeInTheDocument()
+  })
 })

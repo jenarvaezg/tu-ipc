@@ -228,6 +228,7 @@ export default function App() {
         <div className="max-w-4xl mx-auto px-4 py-6 lg:py-8">
           <Header
             lastUpdated={ipcData.lastUpdated}
+            dataMonth={ipcData.months[ipcData.months.length - 1]}
             onMethodology={() => setPage('methodology')}
             onOpenFilters={() => setMobileFiltersOpen(true)}
             actions={

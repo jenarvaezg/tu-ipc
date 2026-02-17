@@ -61,29 +61,27 @@ export default function KPICards({ personalIPC, officialIPC, difference, compari
     5: 'md:grid-cols-3 lg:grid-cols-5',
     6: 'md:grid-cols-3 lg:grid-cols-6',
   }
-  const baseCards = isCustom ? 3 : 1
+  const baseCards = 3
   const totalCards = baseCards + comparisons.length
   const gridCols = GRID_CLASSES[Math.min(totalCards, 6)] || 'md:grid-cols-3'
 
   return (
     <>
     <div className={`grid grid-cols-1 ${gridCols} gap-4 mb-4`}>
-      {isCustom && (
-        <Card className="animate-slide-up" style={{ animationDelay: '0.05s' }}>
-          <CardContent className="pt-6 text-center">
-            <p className="text-sm font-medium text-muted-foreground mb-1">Tu IPC personal</p>
-            <p className={`text-3xl font-bold ${personalColor}`}>
-              {personalIPC >= 0 ? '+' : ''}{personalIPC.toFixed(2)}%
+      <Card className="animate-slide-up" style={{ animationDelay: '0.05s' }}>
+        <CardContent className="pt-6 text-center">
+          <p className="text-sm font-medium text-muted-foreground mb-1">Tu IPC personal</p>
+          <p className={`text-3xl font-bold ${personalColor}`}>
+            {personalIPC >= 0 ? '+' : ''}{personalIPC.toFixed(2)}%
+          </p>
+          {personalHalving && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Tu dinero vale la mitad en ~{personalHalving}
             </p>
-            {personalHalving && (
-              <p className="text-xs text-muted-foreground mt-2">
-                Tu dinero vale la mitad en ~{personalHalving}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      )}
-      <Card className="animate-slide-up" style={{ animationDelay: isCustom ? '0.1s' : '0.05s' }}>
+          )}
+        </CardContent>
+      </Card>
+      <Card className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
         <CardContent className="pt-6 text-center">
           <p className="text-sm font-medium text-muted-foreground mb-1">IPC oficial</p>
           <p className={`text-3xl font-bold ${officialColor}`}>
@@ -91,27 +89,20 @@ export default function KPICards({ personalIPC, officialIPC, difference, compari
           </p>
           {officialHalving && (
             <p className="text-xs text-muted-foreground mt-2">
-              {isCustom ? 'El dinero' : 'Tu dinero'} vale la mitad en ~{officialHalving}
-            </p>
-          )}
-          {!isCustom && !officialHalving && (
-            <p className="text-xs text-muted-foreground mt-2">
-              Personaliza tus pesos para calcular tu IPC
+              El dinero vale la mitad en ~{officialHalving}
             </p>
           )}
         </CardContent>
       </Card>
-      {isCustom && (
-        <Card className="animate-slide-up" style={{ animationDelay: '0.15s' }}>
-          <CardContent className="pt-6 text-center">
-            <p className="text-sm font-medium text-muted-foreground mb-1">Diferencia</p>
-            <p className={`text-3xl font-bold ${diffColor}`}>
-              {difference >= 0 ? '+' : ''}{difference.toFixed(2)} pp
-            </p>
-            <p className={`text-xs mt-1 ${diffColor}`}>{diffText}</p>
-          </CardContent>
-        </Card>
-      )}
+      <Card className="animate-slide-up" style={{ animationDelay: '0.15s' }}>
+        <CardContent className="pt-6 text-center">
+          <p className="text-sm font-medium text-muted-foreground mb-1">Diferencia</p>
+          <p className={`text-3xl font-bold ${diffColor}`}>
+            {difference >= 0 ? '+' : ''}{difference.toFixed(2)} pp
+          </p>
+          <p className={`text-xs mt-1 ${diffColor}`}>{diffText}</p>
+        </CardContent>
+      </Card>
       {comparisons.map((comp, i) => {
         const compHalving = formatHalving(halvingYears(comp.ipc, months))
         return (
@@ -131,6 +122,11 @@ export default function KPICards({ personalIPC, officialIPC, difference, compari
         )
       })}
     </div>
+    {!isCustom && (
+      <p className="text-center text-sm text-primary/80 mb-4">
+        Ajusta tus pesos de gasto para calcular tu IPC personal
+      </p>
+    )}
     <p className="text-center text-sm text-muted-foreground mb-8">
       Una cesta de compra de 1.000€ de {formatMonth(startMonth)} hoy costaría{' '}
       <span className={`font-semibold ${personalIPC >= 0 ? 'text-rose-400' : 'text-emerald-400'}`}>

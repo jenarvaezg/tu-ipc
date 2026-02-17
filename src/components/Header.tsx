@@ -1,20 +1,24 @@
 import { Button } from '@/components/ui/button'
 import ThemeToggle from '@/components/ThemeToggle'
+import { formatMonth } from '@/utils/formatMonth'
 import { SlidersHorizontal } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 interface HeaderProps {
   lastUpdated: string
+  dataMonth?: string
   onMethodology?: () => void
   onOpenFilters?: () => void
   actions?: ReactNode
 }
 
-export default function Header({ lastUpdated, onMethodology, onOpenFilters, actions }: HeaderProps) {
-  const dateStr = new Date(lastUpdated).toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: 'long',
-  })
+export default function Header({ lastUpdated, dataMonth, onMethodology, onOpenFilters, actions }: HeaderProps) {
+  const dateStr = dataMonth
+    ? formatMonth(dataMonth)
+    : new Date(lastUpdated).toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+      })
 
   return (
     <header className="text-center mb-6 animate-fade-in relative">
@@ -40,7 +44,7 @@ export default function Header({ lastUpdated, onMethodology, onOpenFilters, acti
         Calcula tu inflación real según tus hábitos de consumo
       </p>
       <p className="text-sm text-muted-foreground/60">
-        Datos del INE · Índices ECOICOP por CCAA · Actualizado: {dateStr}
+        Datos del INE · Índices ECOICOP por CCAA · Últimos datos: {dateStr}
         {onMethodology && (
           <>
             {' · '}

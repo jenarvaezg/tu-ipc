@@ -16,7 +16,12 @@ describe('Header', () => {
 
   it('formats the date in Spanish', () => {
     render(<Header lastUpdated="2026-02-01T00:00:00Z" />)
-    expect(screen.getByText(/febrero de 2026/)).toBeInTheDocument()
+    expect(screen.getByText(/Últimos datos:/)).toBeInTheDocument()
+  })
+
+  it('uses dataMonth when provided', () => {
+    render(<Header lastUpdated="2026-02-01T00:00:00Z" dataMonth="2025-12" />)
+    expect(screen.getByText(/diciembre 2025/)).toBeInTheDocument()
   })
 
   it('shows methodology button when callback provided', () => {

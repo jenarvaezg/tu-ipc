@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import ThemeToggle from '@/components/ThemeToggle'
 import { ArrowRight, BarChart3, TrendingUp, Share2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import OnboardingQuiz from '@/components/OnboardingQuiz'
@@ -19,7 +20,10 @@ export default function LandingPage({ onStart }: LandingPageProps) {
 
   if (showQuiz) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background relative">
+        <div className="absolute top-4 right-4 z-10">
+          <ThemeToggle />
+        </div>
         <div className="max-w-5xl mx-auto px-4 py-16">
           <h2 className="text-3xl font-bold text-center mb-2">Descubre tu perfil</h2>
           <p className="text-center text-muted-foreground mb-8">
@@ -35,7 +39,10 @@ export default function LandingPage({ onStart }: LandingPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeToggle />
+      </div>
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         {/* Animated gradient background */}
@@ -72,10 +79,9 @@ export default function LandingPage({ onStart }: LandingPageProps) {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               <Button
-                size="lg"
-                variant="outline"
+                variant="ghost"
                 onClick={() => onStart()}
-                className="text-base px-8 py-5 h-auto"
+                className="text-sm text-muted-foreground hover:text-foreground"
               >
                 Saltar al calculador
               </Button>
