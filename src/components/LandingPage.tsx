@@ -22,7 +22,7 @@ export default function LandingPage({ onStart }: LandingPageProps) {
         <div className="max-w-5xl mx-auto px-4 py-16">
           <h2 className="text-3xl font-bold text-center mb-2">Descubre tu perfil</h2>
           <p className="text-center text-muted-foreground mb-8">
-            5 preguntas rápidas para personalizar tu IPC
+            7 preguntas rápidas para personalizar tu IPC
           </p>
           <OnboardingQuiz
             onComplete={(weights) => onStart(weights)}
