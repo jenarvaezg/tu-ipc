@@ -119,7 +119,7 @@ export default function FilterSidebar(props: FilterSidebarProps) {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex lg:flex-col w-72 shrink-0 border-r bg-muted/30 overflow-y-auto sticky top-0 h-screen p-4">
+      <aside className="hidden lg:flex lg:flex-col w-72 shrink-0 border-r border-border bg-muted/30 overflow-y-auto sticky top-0 h-screen p-4">
         <FilterSidebarContent {...contentProps} />
       </aside>
 
