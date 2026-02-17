@@ -102,12 +102,28 @@ export default function App() {
   const regionCategories = regionData?.categories ?? {}
   const generalIndex = regionCategories['00']
 
-  const result = useIPCCalculator(regionCategories, months, weights, startMonth, endMonth, generalIndex)
+  const rawResult = useIPCCalculator(regionCategories, months, weights, startMonth, endMonth, generalIndex)
 
-  const yoyEvolution = useMemo(
+  const rawYoyEvolution = useMemo(
     () => computeYoY(regionCategories, months, weights, startMonth, endMonth, generalIndex),
     [regionCategories, months, weights, startMonth, endMonth, generalIndex]
   )
+
+  // When weights are official, personal = official (avoid spurious differences from weighted-sum approximation vs INE general index)
+  const result = useMemo(() => {
+    if (isCustom) return rawResult
+    return {
+      ...rawResult,
+      personalIPC: rawResult.officialIPC,
+      difference: 0,
+      evolution: rawResult.evolution.map(d => ({ ...d, personal: d.official })),
+    }
+  }, [rawResult, isCustom])
+
+  const yoyEvolution = useMemo(() => {
+    if (isCustom) return rawYoyEvolution
+    return rawYoyEvolution.map(d => ({ ...d, personal: d.official }))
+  }, [rawYoyEvolution, isCustom])
 
   const {
     comparisonIds,
