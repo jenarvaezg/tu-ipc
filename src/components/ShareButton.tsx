@@ -39,6 +39,7 @@ export default function ShareButton({
       const dataUrl = await toPng(target, {
         pixelRatio: 2,
         backgroundColor: isDark ? '#09090b' : '#ffffff',
+        filter: (node: HTMLElement) => node.dataset?.shareHide === undefined,
       })
 
       const res = await fetch(dataUrl)
@@ -58,7 +59,6 @@ export default function ShareButton({
           files: [file],
           title: 'Mi IPC Personal',
           text: `Mi inflación personal: ${sign}${personalIPC.toFixed(2)}% (${diffText})\n${period}\n\nDescubre la tuya en tu-ipc.es`,
-          url: window.location.href,
         })
         trackEvent('share_image', { method: 'native' })
       } else {

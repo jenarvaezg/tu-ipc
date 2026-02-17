@@ -86,6 +86,7 @@ const EvolutionChart = forwardRef<HTMLDivElement, EvolutionChartProps>(function 
                 size="sm"
                 onClick={() => setMode('acumulado')}
                 className={mode === 'acumulado' ? '' : 'hover:bg-primary/10 hover:text-primary transition-colors'}
+                {...(mode !== 'acumulado' ? { 'data-share-hide': '' } : {})}
               >
                 Acumulado
               </Button>
@@ -94,6 +95,7 @@ const EvolutionChart = forwardRef<HTMLDivElement, EvolutionChartProps>(function 
                 size="sm"
                 onClick={() => setMode('interanual')}
                 className={mode === 'interanual' ? '' : 'hover:bg-primary/10 hover:text-primary transition-colors'}
+                {...(mode !== 'interanual' ? { 'data-share-hide': '' } : {})}
               >
                 Interanual
               </Button>
