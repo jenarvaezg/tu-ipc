@@ -37,7 +37,11 @@ function formatHalving(years: number | null): string | null {
   return months <= 1 ? '1 mes' : `${months} meses`
 }
 
-export default function KPICards({ personalIPC, officialIPC, difference, comparisons = [], isCustom = true, startMonth, endMonth }: KPICardsProps) {
+export default function KPICards({ personalIPC: rawPersonalIPC, officialIPC, difference: rawDifference, comparisons = [], isCustom = true, startMonth, endMonth }: KPICardsProps) {
+  // When weights are not customized, personal IPC = official (avoid showing spurious differences from weighted-sum approximation)
+  const personalIPC = isCustom ? rawPersonalIPC : officialIPC
+  const difference = isCustom ? rawDifference : 0
+
   const personalColor = personalIPC >= 0 ? 'text-rose-400' : 'text-emerald-400'
   const officialColor = officialIPC >= 0 ? 'text-rose-400' : 'text-emerald-400'
   const diffColor = difference >= 0 ? 'text-rose-400' : 'text-emerald-400'

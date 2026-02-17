@@ -44,11 +44,14 @@ describe('KPICards', () => {
     expect(personalValue.className).toContain('emerald')
   })
 
-  it('shows all three cards when isCustom is false', () => {
+  it('shows all three cards when isCustom is false, using official values', () => {
     render(<KPICards startMonth="2024-01" endMonth="2025-01" personalIPC={2.5} officialIPC={2.1} difference={0.4} isCustom={false} />)
     expect(screen.getByText('Tu IPC personal')).toBeInTheDocument()
     expect(screen.getByText('IPC oficial')).toBeInTheDocument()
     expect(screen.getByText('Diferencia')).toBeInTheDocument()
+    // Personal should equal official when not custom
+    expect(screen.getAllByText('+2.10%')).toHaveLength(2)
+    expect(screen.getByText('+0.00 pp')).toBeInTheDocument()
   })
 
   it('shows banner to customize weights when isCustom is false', () => {
