@@ -3,6 +3,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import { ArrowRight, BarChart3, TrendingUp, Share2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import OnboardingQuiz from '@/components/OnboardingQuiz'
+import Footer from '@/components/Footer'
 
 interface LandingPageProps {
   onStart: (weights?: Record<string, number>) => void
@@ -189,12 +190,8 @@ export default function LandingPage({ onStart }: LandingPageProps) {
         </div>
       </div>
 
-      {/* Footer note */}
-      <div className="max-w-5xl mx-auto px-4 py-6 text-center text-xs text-muted-foreground">
-        <p>
-          Datos oficiales del Instituto Nacional de Estadística (INE) ·
-          Índices ECOICOP por comunidad autónoma
-        </p>
+      <div className="max-w-5xl mx-auto px-4">
+        <Footer />
       </div>
     </div>
   )
