@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Tu IPC Personal</title>
+    <script>
+      // GitHub Pages SPA redirect: store the path and redirect to base
+      // so the React app can pick it up and render the right page.
+      var base = '/tu-ipc/';
+      var path = window.location.pathname;
+      if (path.indexOf(base) === 0) {
+        // Store the sub-path after the base (e.g. "metodologia")
+        sessionStorage.setItem('spa-redirect', path.slice(base.length) + window.location.search + window.location.hash);
+      }
+      window.location.replace(base);
+    </script>
+  </head>
+  <body></body>
+</html>

@@ -27,6 +27,14 @@ const RegionRanking = lazy(() => import('@/components/RegionRanking'))
 
 const ipcData = ipcDataRaw as IPCData
 
+const BASE = import.meta.env.BASE_URL // '/tu-ipc/' in prod, '/' in dev
+
+function getSubRoute(): string {
+  const path = window.location.pathname
+  const sub = path.startsWith(BASE) ? path.slice(BASE.length) : path.slice(1)
+  return sub.replace(/\/$/, '')
+}
+
 const isEmbed = new URLSearchParams(window.location.search).get('embed') === '1'
 
 const STORAGE_KEY_REGION = 'tu-ipc-region'
@@ -48,18 +56,19 @@ function saveRegion(region: string) {
 }
 
 export default function App() {
-  const [page, setPage] = useState<'calculator' | 'methodology'>('calculator')
-
   // URL params take priority over localStorage
   const urlState = useMemo(() => parseURLState(), [])
 
-  // Skip landing if URL has any calculator params (shared link or reload from calculator)
-  const hasSharedParams = useMemo(() => {
+  const initialRoute = useMemo(() => getSubRoute(), [])
+
+  // Skip landing if URL has calculator params or we're on a sub-route
+  const hasCalcParams = useMemo(() => {
     return urlState.weights != null || urlState.comparisonIds != null || urlState.comparisonRegions != null
       || urlState.startMonth != null || urlState.endMonth != null || urlState.region != null || urlState.activeTab != null
   }, [urlState])
 
-  const [showLanding, setShowLanding] = useState(() => !hasSharedParams)
+  const [showLanding, setShowLanding] = useState(() => initialRoute !== 'metodologia' && !hasCalcParams)
+  const [showMethodology, setShowMethodology] = useState(() => initialRoute === 'metodologia')
 
   const {
     weights,
@@ -142,10 +151,10 @@ export default function App() {
 
   // Sync state to URL (only when calculator is visible)
   useEffect(() => {
-    if (!showLanding) {
+    if (!showLanding && !showMethodology) {
       debouncedSyncRef.current({ weights, startMonth, endMonth, region, activeTab, comparisonIds, comparisonRegions })
     }
-  }, [showLanding, weights, startMonth, endMonth, region, activeTab, comparisonIds, comparisonRegions])
+  }, [showLanding, showMethodology, weights, startMonth, endMonth, region, activeTab, comparisonIds, comparisonRegions])
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
 
@@ -153,31 +162,53 @@ export default function App() {
     if (quizWeights) {
       handlePresetSelect(quizWeights)
     }
-    window.history.pushState({ page: 'calculator' }, '')
+    window.history.pushState({ page: 'calculator' }, '', BASE)
     setShowLanding(false)
   }, [handlePresetSelect])
 
-  // Browser back button returns to landing page
+  const navigateToMethodology = useCallback(() => {
+    window.history.pushState({ page: 'methodology' }, '', BASE + 'metodologia')
+    setShowMethodology(true)
+  }, [])
+
+  // Browser back/forward: derive page from URL
   useEffect(() => {
-    function handlePopState() {
-      setShowLanding(true)
+    function handlePopState(e: PopStateEvent) {
+      const route = getSubRoute()
+      if (route === 'metodologia') {
+        setShowMethodology(true)
+        setShowLanding(false)
+      } else {
+        setShowMethodology(false)
+        // Check if we should show calculator or landing
+        if (e.state?.page === 'calculator') {
+          setShowLanding(false)
+        } else {
+          const params = parseURLState()
+          const hasParams = params.weights != null || params.startMonth != null
+            || params.endMonth != null || params.region != null
+            || params.activeTab != null || params.comparisonIds != null
+            || params.comparisonRegions != null
+          setShowLanding(!hasParams)
+        }
+      }
     }
     window.addEventListener('popstate', handlePopState)
     return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
-  if (showLanding) {
-    return <main><LandingPage onStart={handleLandingStart} /></main>
-  }
-
-  if (page === 'methodology') {
+  if (showMethodology) {
     return (
       <main>
         <Suspense fallback={<LazyFallback />}>
-          <Methodology onBack={() => setPage('calculator')} />
+          <Methodology onBack={() => window.history.back()} />
         </Suspense>
       </main>
     )
+  }
+
+  if (showLanding) {
+    return <main><LandingPage onStart={handleLandingStart} /></main>
   }
 
   if (isEmbed) {
@@ -230,7 +261,7 @@ export default function App() {
           <Header
             lastUpdated={ipcData.lastUpdated}
             dataMonth={ipcData.months[ipcData.months.length - 1]}
-            onMethodology={() => setPage('methodology')}
+            onMethodology={navigateToMethodology}
             onOpenFilters={() => setMobileFiltersOpen(true)}
             actions={
               <div className="flex items-center gap-1">
@@ -319,7 +350,7 @@ export default function App() {
               </Suspense>
             </div>
           )}
-          <Footer onMethodology={() => setPage('methodology')} />
+          <Footer onMethodology={navigateToMethodology} />
         </div>
       </main>
     </div>

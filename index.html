@@ -34,6 +34,19 @@
   <body>
     <script>try{var t=localStorage.getItem('tu-ipc-theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark')}catch(e){}</script>
     <div id="root"></div>
+    <script>
+      // GitHub Pages SPA: restore path from 404.html redirect
+      (function() {
+        var redirect = sessionStorage.getItem('spa-redirect');
+        if (redirect) {
+          sessionStorage.removeItem('spa-redirect');
+          var base = '/tu-ipc/';
+          if (window.location.pathname === base || window.location.pathname === base.slice(0, -1)) {
+            window.history.replaceState(null, '', base + redirect);
+          }
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
