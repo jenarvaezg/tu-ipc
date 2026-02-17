@@ -166,20 +166,22 @@ export default function App() {
   }, [])
 
   if (showLanding) {
-    return <LandingPage onStart={handleLandingStart} />
+    return <main><LandingPage onStart={handleLandingStart} /></main>
   }
 
   if (page === 'methodology') {
     return (
-      <Suspense fallback={<LazyFallback />}>
-        <Methodology onBack={() => setPage('calculator')} />
-      </Suspense>
+      <main>
+        <Suspense fallback={<LazyFallback />}>
+          <Methodology onBack={() => setPage('calculator')} />
+        </Suspense>
+      </main>
     )
   }
 
   if (isEmbed) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-4">
+      <main className="max-w-4xl mx-auto px-4 py-4">
         <KPICards
           personalIPC={result.personalIPC}
           officialIPC={result.officialIPC}
@@ -194,7 +196,7 @@ export default function App() {
             isCustom={isCustom}
           />
         </Suspense>
-      </div>
+      </main>
     )
   }
 
