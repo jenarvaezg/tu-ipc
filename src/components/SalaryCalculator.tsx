@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useSalaryComparison, PayType } from '@/hooks/useSalaryComparison'
+import { formatMonth } from '@/utils/formatMonth'
 
 const STORAGE_KEY_SALARY = 'tu-ipc-salary'
 
@@ -94,7 +95,7 @@ export default function SalaryCalculator({ personalIPC, startMonth, endMonth }: 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="salary-before" className="block text-sm font-medium text-muted-foreground mb-1">
-                Salario neto {inputs.payType === 'anual' ? 'anual' : 'mensual'} antes
+                Salario neto {inputs.payType === 'anual' ? 'anual' : 'mensual'} en {formatMonth(startMonth)}
               </label>
               <div className="relative">
                 <input
@@ -111,7 +112,7 @@ export default function SalaryCalculator({ personalIPC, startMonth, endMonth }: 
             </div>
             <div>
               <label htmlFor="salary-after" className="block text-sm font-medium text-muted-foreground mb-1">
-                Salario neto {inputs.payType === 'anual' ? 'anual' : 'mensual'} después
+                Salario neto {inputs.payType === 'anual' ? 'anual' : 'mensual'} en {formatMonth(endMonth)}
               </label>
               <div className="relative">
                 <input
