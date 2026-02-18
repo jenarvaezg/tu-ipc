@@ -1,24 +1,34 @@
-import { Button } from '@/components/ui/button'
-import ThemeToggle from '@/components/ThemeToggle'
-import { formatMonth } from '@/utils/formatMonth'
-import { SlidersHorizontal } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { Button } from "@/components/ui/button";
+import ThemeToggle from "@/components/ThemeToggle";
+import { formatMonth } from "@/utils/formatMonth";
+import { SlidersHorizontal } from "lucide-react";
+import type { ReactNode } from "react";
 
 interface HeaderProps {
-  lastUpdated: string
-  dataMonth?: string
-  onMethodology?: () => void
-  onOpenFilters?: () => void
-  actions?: ReactNode
+  lastUpdated: string;
+  dataMonth?: string;
+  onMethodology?: () => void;
+  onOpenFilters?: () => void;
+  actions?: ReactNode;
 }
 
-export default function Header({ lastUpdated, dataMonth, onMethodology, onOpenFilters, actions }: HeaderProps) {
+export default function Header({
+  lastUpdated,
+  dataMonth,
+  onMethodology,
+  onOpenFilters,
+  actions,
+}: HeaderProps) {
   const dateStr = dataMonth
     ? formatMonth(dataMonth)
-    : new Date(lastUpdated).toLocaleDateString('es-ES', {
-        year: 'numeric',
-        month: 'long',
-      })
+    : new Date(lastUpdated).toLocaleDateString("es-ES", {
+        year: "numeric",
+        month: "long",
+      });
+
+  const daysSinceUpdate = Math.floor(
+    (Date.now() - new Date(lastUpdated).getTime()) / 86400000,
+  );
 
   return (
     <header className="mb-6 animate-fade-in">
@@ -43,19 +53,28 @@ export default function Header({ lastUpdated, dataMonth, onMethodology, onOpenFi
         </div>
       </div>
       <p className="text-lg text-muted-foreground mb-2 text-center">
-        Calcula tu inflación real según tus hábitos de consumo
+        Estima tu inflación según tus hábitos de consumo
       </p>
       <p className="text-sm text-muted-foreground/60">
         Datos del INE · Índices ECOICOP por CCAA · Últimos datos: {dateStr}
         {onMethodology && (
           <>
-            {' · '}
-            <Button variant="link" className="p-0 h-auto text-sm text-muted-foreground/60 underline hover:text-foreground transition-colors" onClick={onMethodology}>
+            {" · "}
+            <Button
+              variant="link"
+              className="p-0 h-auto text-sm text-muted-foreground/60 underline hover:text-foreground transition-colors"
+              onClick={onMethodology}
+            >
               Metodología
             </Button>
           </>
         )}
       </p>
+      {daysSinceUpdate > 45 && (
+        <p className="text-xs text-amber-500 mt-1">
+          Datos no actualizados desde hace {daysSinceUpdate} días
+        </p>
+      )}
     </header>
-  )
+  );
 }

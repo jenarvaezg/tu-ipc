@@ -1,16 +1,32 @@
-import { Button } from '@/components/ui/button'
+import { Button } from "@/components/ui/button";
 
 interface FooterProps {
-  onMethodology?: () => void
+  onMethodology?: () => void;
+  onPrivacy?: () => void;
 }
 
-export default function Footer({ onMethodology }: FooterProps) {
+function handleClearData() {
+  if (!window.confirm("¿Borrar todas tus preferencias guardadas?")) return;
+  const keys = [
+    "tu-ipc-weights",
+    "tu-ipc-locked",
+    "tu-ipc-region",
+    "tu-ipc-theme",
+    "tu-ipc-salary",
+  ];
+  for (const key of keys) {
+    localStorage.removeItem(key);
+  }
+  window.location.reload();
+}
+
+export default function Footer({ onMethodology, onPrivacy }: FooterProps) {
   return (
     <footer className="py-8">
       <div className="mb-6 h-px bg-border" />
       <div className="text-center text-xs text-muted-foreground">
         <p className="mb-1">
-          Datos del{' '}
+          Datos del{" "}
           <a
             href="https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736176802&menu=ultiDatos&idp=1254735976607"
             target="_blank"
@@ -18,12 +34,12 @@ export default function Footer({ onMethodology }: FooterProps) {
             className="underline underline-offset-4 hover:text-primary transition-colors"
           >
             Instituto Nacional de Estadística (INE)
-          </a>
-          {' '}· Índices de precios ECOICOP · Base 2021 = 100
+          </a>{" "}
+          · Índices de precios ECOICOP · Base 2021 = 100
         </p>
         <p>
-          Esta herramienta es orientativa. El IPC oficial se calcula con metodología más compleja.
-          {' '}
+          Esta herramienta es orientativa. El IPC oficial se calcula con
+          metodología más compleja.{" "}
           <a
             href="https://www.ine.es/dyngs/DAB/index.htm?cid=1100"
             target="_blank"
@@ -34,15 +50,31 @@ export default function Footer({ onMethodology }: FooterProps) {
           </a>
           {onMethodology && (
             <>
-              {' · '}
-              <Button variant="link" className="p-0 h-auto text-xs text-muted-foreground underline hover:text-primary" onClick={onMethodology}>
+              {" · "}
+              <Button
+                variant="link"
+                className="p-0 h-auto text-xs text-muted-foreground underline hover:text-primary"
+                onClick={onMethodology}
+              >
                 Metodología
+              </Button>
+            </>
+          )}
+          {onPrivacy && (
+            <>
+              {" · "}
+              <Button
+                variant="link"
+                className="p-0 h-auto text-xs text-muted-foreground underline hover:text-primary"
+                onClick={onPrivacy}
+              >
+                Privacidad
               </Button>
             </>
           )}
         </p>
         <p className="mt-2">
-          Hecho por{' '}
+          Hecho por{" "}
           <a
             href="https://github.com/jenarvaezg"
             target="_blank"
@@ -51,7 +83,7 @@ export default function Footer({ onMethodology }: FooterProps) {
           >
             jenarvaezg
           </a>
-          {' · '}
+          {" · "}
           <a
             href="https://github.com/jenarvaezg/tu-ipc"
             target="_blank"
@@ -60,8 +92,16 @@ export default function Footer({ onMethodology }: FooterProps) {
           >
             Código fuente
           </a>
+          {" · "}
+          <Button
+            variant="link"
+            className="p-0 h-auto text-xs text-muted-foreground underline hover:text-primary"
+            onClick={handleClearData}
+          >
+            Borrar mis datos
+          </Button>
         </p>
       </div>
     </footer>
-  )
+  );
 }

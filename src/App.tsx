@@ -26,6 +26,7 @@ const EvolutionChart = lazy(() => import('@/components/EvolutionChart'))
 const Methodology = lazy(() => import('@/components/Methodology'))
 const SalaryCalculator = lazy(() => import('@/components/SalaryCalculator'))
 const RegionRanking = lazy(() => import('@/components/RegionRanking'))
+const PrivacyPolicy = lazy(() => import('@/components/PrivacyPolicy'))
 
 const ipcData = ipcDataRaw as IPCData
 
@@ -69,8 +70,9 @@ export default function App() {
       || urlState.startMonth != null || urlState.endMonth != null || urlState.region != null || urlState.activeTab != null
   }, [urlState])
 
-  const [showLanding, setShowLanding] = useState(() => initialRoute !== 'metodologia' && !hasCalcParams)
+  const [showLanding, setShowLanding] = useState(() => initialRoute !== 'metodologia' && initialRoute !== 'privacidad' && !hasCalcParams)
   const [showMethodology, setShowMethodology] = useState(() => initialRoute === 'metodologia')
+  const [showPrivacy, setShowPrivacy] = useState(() => initialRoute === 'privacidad')
 
   const {
     weights,
@@ -170,10 +172,10 @@ export default function App() {
 
   // Sync state to URL (only when calculator is visible)
   useEffect(() => {
-    if (!showLanding && !showMethodology) {
+    if (!showLanding && !showMethodology && !showPrivacy) {
       debouncedSyncRef.current({ weights, startMonth, endMonth, region, activeTab, comparisonIds, comparisonRegions })
     }
-  }, [showLanding, showMethodology, weights, startMonth, endMonth, region, activeTab, comparisonIds, comparisonRegions])
+  }, [showLanding, showMethodology, showPrivacy, weights, startMonth, endMonth, region, activeTab, comparisonIds, comparisonRegions])
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
 
@@ -189,6 +191,14 @@ export default function App() {
     trackEvent('methodology_view')
     window.history.pushState({ page: 'methodology' }, '', BASE + 'metodologia')
     setShowMethodology(true)
+    setShowPrivacy(false)
+  }, [])
+
+  const navigateToPrivacy = useCallback(() => {
+    trackEvent('privacy_view')
+    window.history.pushState({ page: 'privacy' }, '', BASE + 'privacidad')
+    setShowPrivacy(true)
+    setShowMethodology(false)
   }, [])
 
   // Browser back/forward: derive page from URL
@@ -197,9 +207,15 @@ export default function App() {
       const route = getSubRoute()
       if (route === 'metodologia') {
         setShowMethodology(true)
+        setShowPrivacy(false)
+        setShowLanding(false)
+      } else if (route === 'privacidad') {
+        setShowPrivacy(true)
+        setShowMethodology(false)
         setShowLanding(false)
       } else {
         setShowMethodology(false)
+        setShowPrivacy(false)
         // Check if we should show calculator or landing
         if (e.state?.page === 'calculator') {
           setShowLanding(false)
@@ -220,10 +236,14 @@ export default function App() {
   useDocumentMeta(
     showMethodology
       ? 'Metodología — Tu IPC Personal'
-      : 'Tu IPC Personal — Descubre tu inflación real en España',
+      : showPrivacy
+        ? 'Privacidad — Tu IPC Personal'
+        : 'Tu IPC Personal — Estima tu inflación en España',
     showMethodology
       ? 'Cómo se calcula tu inflación personal: fuente de datos del INE, categorías ECOICOP, encadenamiento de bases y fórmulas.'
-      : 'Ajusta los pesos de gasto a tu estilo de vida y compara tu inflación personal con el IPC oficial del INE. Datos actualizados por comunidad autónoma.',
+      : showPrivacy
+        ? 'Política de privacidad de Tu IPC Personal: analítica sin cookies, datos locales, código abierto.'
+        : 'Ajusta los pesos de gasto a tu estilo de vida y compara tu inflación personal con el IPC oficial del INE. Datos actualizados por comunidad autónoma.',
   )
 
   if (showMethodology) {
@@ -231,6 +251,16 @@ export default function App() {
       <main>
         <Suspense fallback={<LazyFallback />}>
           <Methodology onBack={() => window.history.back()} />
+        </Suspense>
+      </main>
+    )
+  }
+
+  if (showPrivacy) {
+    return (
+      <main>
+        <Suspense fallback={<LazyFallback />}>
+          <PrivacyPolicy onBack={() => window.history.back()} />
         </Suspense>
       </main>
     )
@@ -257,6 +287,9 @@ export default function App() {
             isCustom={isCustom}
           />
         </Suspense>
+        <p className="text-xs text-muted-foreground text-center mt-2">
+          Datos del INE · <a href="https://tu-ipc.es" className="underline">tu-ipc.es</a>
+        </p>
       </main>
     )
   }
@@ -379,7 +412,7 @@ export default function App() {
               </Suspense>
             </div>
           )}
-          <Footer onMethodology={navigateToMethodology} />
+          <Footer onMethodology={navigateToMethodology} onPrivacy={navigateToPrivacy} />
         </div>
       </main>
     </div>
