@@ -88,6 +88,7 @@ export default function ShareButton({
         disabled={state === 'generating'}
         className={`h-8 w-8 transition-colors ${state === 'done' ? 'bg-green-500/20 text-green-600 dark:text-green-400' : 'hover:bg-primary/10'}`}
         title={title}
+        aria-label={title}
       >
         {state === 'generating' ? (
           <Loader2 className="h-4 w-4 animate-spin" />

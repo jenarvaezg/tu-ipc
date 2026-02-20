@@ -69,6 +69,19 @@ export default function PeriodSelector({
     onEndChange(lastMonth)
   }
 
+  function isPresetActive(preset: (typeof presets)[number]): boolean {
+    if (endMonth !== lastMonth) return false
+    if (preset.month) {
+      const found = months.find((m) => m >= preset.month!) || months[0]
+      return startMonth === found
+    }
+    if (preset.offset) {
+      const idx = Math.max(0, months.length - 1 - preset.offset)
+      return startMonth === months[idx]
+    }
+    return false
+  }
+
   if (compact) {
     return (
       <div className="space-y-3">
@@ -76,10 +89,14 @@ export default function PeriodSelector({
           {presets.map((p) => (
             <Button
               key={p.label}
-              variant="secondary"
+              variant={isPresetActive(p) ? "default" : "secondary"}
               size="sm"
               onClick={() => applyPreset(p)}
-              className="text-xs h-7 px-2.5 hover:bg-primary/10 hover:text-primary transition-colors"
+              className={
+                isPresetActive(p)
+                  ? "text-xs h-7 px-2.5"
+                  : "text-xs h-7 px-2.5 hover:bg-primary/10 hover:text-primary transition-colors"
+              }
             >
               {p.label}
             </Button>
@@ -139,10 +156,14 @@ export default function PeriodSelector({
           {presets.map((p) => (
             <Button
               key={p.label}
-              variant="secondary"
+              variant={isPresetActive(p) ? "default" : "secondary"}
               size="sm"
               onClick={() => applyPreset(p)}
-              className="text-xs h-7 px-2.5 hover:bg-primary/10 hover:text-primary transition-colors"
+              className={
+                isPresetActive(p)
+                  ? "text-xs h-7 px-2.5"
+                  : "text-xs h-7 px-2.5 hover:bg-primary/10 hover:text-primary transition-colors"
+              }
             >
               {p.label}
             </Button>

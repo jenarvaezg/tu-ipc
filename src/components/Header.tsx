@@ -32,16 +32,21 @@ export default function Header({
 
   return (
     <header className="mb-6 animate-fade-in">
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-          Tu IPC Personal
-        </h1>
-        <div className="flex items-center gap-1 shrink-0">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            Tu IPC Personal
+          </h1>
+          <p className="mt-1 text-base text-muted-foreground sm:text-lg">
+            Estima tu inflación según tus hábitos de consumo
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
           {onOpenFilters && (
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden"
+              className="h-8 w-8 lg:hidden"
               onClick={onOpenFilters}
               aria-label="Abrir filtros"
             >
@@ -52,24 +57,21 @@ export default function Header({
           <ThemeToggle />
         </div>
       </div>
-      <p className="text-lg text-muted-foreground mb-2 text-center">
-        Estima tu inflación según tus hábitos de consumo
-      </p>
-      <p className="text-sm text-muted-foreground/60">
-        Datos del INE · Índices ECOICOP por CCAA · Últimos datos: {dateStr}
+      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+        <span>Datos del INE · Índices ECOICOP por CCAA</span>
+        <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
+          Últimos datos: {dateStr}
+        </span>
         {onMethodology && (
-          <>
-            {" · "}
-            <Button
-              variant="link"
-              className="p-0 h-auto text-sm text-muted-foreground/60 underline hover:text-foreground transition-colors"
-              onClick={onMethodology}
-            >
-              Metodología
-            </Button>
-          </>
+          <Button
+            variant="link"
+            className="h-auto p-0 text-sm text-muted-foreground underline transition-colors hover:text-foreground"
+            onClick={onMethodology}
+          >
+            Metodología
+          </Button>
         )}
-      </p>
+      </div>
       {daysSinceUpdate > 45 && (
         <p className="text-xs text-amber-500 mt-1">
           Datos no actualizados desde hace {daysSinceUpdate} días

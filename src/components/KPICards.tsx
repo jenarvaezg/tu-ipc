@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { COMPARISON_COLORS } from "@/data/constants";
 import { formatMonth } from "@/utils/formatMonth";
@@ -46,6 +47,14 @@ export default function KPICards({
   startMonth,
   endMonth,
 }: KPICardsProps) {
+  const [showAllMobileComparisons, setShowAllMobileComparisons] = useState(false);
+
+  useEffect(() => {
+    if (comparisons.length <= 2 && showAllMobileComparisons) {
+      setShowAllMobileComparisons(false);
+    }
+  }, [comparisons.length, showAllMobileComparisons]);
+
   const personalColor = personalIPC >= 0 ? "text-rose-400" : "text-emerald-400";
   const officialColor = officialIPC >= 0 ? "text-rose-400" : "text-emerald-400";
   const diffColor = difference >= 0 ? "text-rose-400" : "text-emerald-400";
@@ -72,16 +81,17 @@ export default function KPICards({
   const baseCards = 3;
   const totalCards = baseCards + comparisons.length;
   const gridCols = GRID_CLASSES[Math.min(totalCards, 6)] || "md:grid-cols-3";
+  const hiddenComparisons = Math.max(0, comparisons.length - 2);
 
   return (
     <>
-      <div className={`grid grid-cols-1 ${gridCols} gap-4 mb-4`}>
+      <div className={`mb-4 grid grid-cols-1 gap-4 ${gridCols}`}>
         <Card className="animate-slide-up" style={{ animationDelay: "0.05s" }}>
           <CardContent className="pt-6 text-center">
-            <p className="text-sm font-medium text-muted-foreground mb-1">
+            <p className="mb-1 text-sm font-medium text-muted-foreground">
               Tu IPC personal
             </p>
-            <p className={`text-3xl font-bold ${personalColor}`}>
+            <p className={`text-3xl font-bold tracking-tight ${personalColor}`}>
               {personalIPC !== 0 && (
                 <span aria-hidden="true">{personalIPC > 0 ? "↑" : "↓"}</span>
               )}
@@ -92,18 +102,19 @@ export default function KPICards({
               {personalIPC.toFixed(2)}%
             </p>
             {personalHalving && (
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="mt-2 text-xs text-muted-foreground">
                 A este ritmo, valdría la mitad en ~{personalHalving}
               </p>
             )}
           </CardContent>
         </Card>
+
         <Card className="animate-slide-up" style={{ animationDelay: "0.1s" }}>
           <CardContent className="pt-6 text-center">
-            <p className="text-sm font-medium text-muted-foreground mb-1">
+            <p className="mb-1 text-sm font-medium text-muted-foreground">
               IPC oficial
             </p>
-            <p className={`text-3xl font-bold ${officialColor}`}>
+            <p className={`text-3xl font-bold tracking-tight ${officialColor}`}>
               {officialIPC !== 0 && (
                 <span aria-hidden="true">{officialIPC > 0 ? "↑" : "↓"}</span>
               )}
@@ -114,18 +125,19 @@ export default function KPICards({
               {officialIPC.toFixed(2)}%
             </p>
             {officialHalving && (
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="mt-2 text-xs text-muted-foreground">
                 A este ritmo, valdría la mitad en ~{officialHalving}
               </p>
             )}
           </CardContent>
         </Card>
+
         <Card className="animate-slide-up" style={{ animationDelay: "0.15s" }}>
           <CardContent className="pt-6 text-center">
-            <p className="text-sm font-medium text-muted-foreground mb-1">
+            <p className="mb-1 text-sm font-medium text-muted-foreground">
               Diferencia
             </p>
-            <p className={`text-3xl font-bold ${diffColor}`}>
+            <p className={`text-3xl font-bold tracking-tight ${diffColor}`}>
               {difference !== 0 && (
                 <span aria-hidden="true">{difference > 0 ? "↑" : "↓"}</span>
               )}
@@ -135,31 +147,31 @@ export default function KPICards({
               {difference >= 0 ? "+" : ""}
               {difference.toFixed(2)} pp
             </p>
-            <p className={`text-xs mt-1 ${diffColor}`}>{diffText}</p>
+            <p className={`mt-1 text-xs ${diffColor}`}>{diffText}</p>
           </CardContent>
         </Card>
+
         {comparisons.map((comp, i) => {
           const compHalving = formatHalving(halvingYears(comp.ipc, months));
+          const hiddenOnMobile = !showAllMobileComparisons && i >= 2;
           return (
             <Card
               key={comp.label}
-              className="animate-slide-up"
+              className={`animate-slide-up ${hiddenOnMobile ? "hidden sm:block" : ""}`}
               style={{ animationDelay: `${0.2 + i * 0.05}s` }}
             >
               <CardContent className="pt-6 text-center">
-                <p className="text-sm font-medium text-muted-foreground mb-1">
+                <p className="mb-1 text-sm font-medium text-muted-foreground">
                   {comp.label}
                 </p>
                 <p
-                  className="text-3xl font-bold"
+                  className="text-3xl font-bold tracking-tight"
                   style={{
                     color: COMPARISON_COLORS[i % COMPARISON_COLORS.length],
                   }}
                 >
                   {comp.ipc !== 0 && (
-                    <span aria-hidden="true">
-                      {comp.ipc > 0 ? "↑" : "↓"}
-                    </span>
+                    <span aria-hidden="true">{comp.ipc > 0 ? "↑" : "↓"}</span>
                   )}
                   <span className="sr-only">
                     {comp.ipc > 0 ? "subida" : comp.ipc < 0 ? "bajada" : ""}
@@ -168,7 +180,7 @@ export default function KPICards({
                   {comp.ipc.toFixed(2)}%
                 </p>
                 {compHalving && (
-                  <p className="text-xs text-muted-foreground mt-2">
+                  <p className="mt-2 text-xs text-muted-foreground">
                     A este ritmo, valdría la mitad en ~{compHalving}
                   </p>
                 )}
@@ -177,12 +189,28 @@ export default function KPICards({
           );
         })}
       </div>
+
+      {hiddenComparisons > 0 && (
+        <div className="mb-4 sm:hidden">
+          <button
+            type="button"
+            onClick={() => setShowAllMobileComparisons((prev) => !prev)}
+            className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+          >
+            {showAllMobileComparisons
+              ? "Ver menos comparaciones"
+              : `Ver ${hiddenComparisons} comparaciones más`}
+          </button>
+        </div>
+      )}
+
       {!isCustom && (
-        <p className="text-center text-sm text-primary/80 mb-4">
+        <p className="mb-4 text-center text-sm text-primary/80">
           Ajusta tus pesos de gasto para calcular tu IPC personal
         </p>
       )}
-      <p className="text-center text-sm text-muted-foreground mb-4">
+
+      <p className="mb-4 text-center text-sm text-muted-foreground">
         Una cesta de compra de 1.000€ de {formatMonth(startMonth)} hoy costaría{" "}
         <span
           className={`font-semibold ${personalIPC >= 0 ? "text-rose-400" : "text-emerald-400"}`}
@@ -190,8 +218,9 @@ export default function KPICards({
           {(1000 * (1 + personalIPC / 100)).toFixed(0)}€
         </span>
       </p>
+
       {isCustom && (
-        <p className="text-xs text-muted-foreground/60 text-center mb-4">
+        <p className="mb-4 text-center text-xs text-muted-foreground">
           Estimación basada en 12 categorías de gasto del INE. Tu inflación real
           depende de los productos específicos que compras.
         </p>

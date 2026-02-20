@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import ipcDataRaw from '@/data/ipc-data.json'
 import type { IPCData } from '@/data/types'
+import { Card, CardContent } from '@/components/ui/card'
+import { CATEGORIES, OFFICIAL_WEIGHTS } from '@/data/categories'
 import { useIPCCalculator, computeYoY } from '@/hooks/useIPCCalculator'
 import { parseURLState, syncToURL } from '@/hooks/useURLState'
 import { useWeights } from '@/hooks/useWeights'
@@ -43,7 +45,13 @@ const isEmbed = new URLSearchParams(window.location.search).get('embed') === '1'
 const STORAGE_KEY_REGION = 'tu-ipc-region'
 
 function LazyFallback() {
-  return <div className="h-32 flex items-center justify-center text-muted-foreground text-sm">Cargando...</div>
+  return (
+    <div className="mb-6 rounded-xl border border-border bg-card p-6 animate-pulse">
+      <div className="mb-4 h-5 w-40 rounded bg-muted" />
+      <div className="h-56 rounded bg-muted/70" />
+      <span className="sr-only">Cargando contenido</span>
+    </div>
+  )
 }
 
 function loadRegion(): string {
@@ -162,6 +170,22 @@ export default function App() {
     }
     return vars
   }, [result.breakdown])
+  const topWeightDifferences = useMemo(() => {
+    return CATEGORIES.map((cat) => {
+      const current = weights[cat.code] ?? 0
+      const official = OFFICIAL_WEIGHTS[cat.code] ?? 0
+      const diff = current - official
+      return {
+        code: cat.code,
+        name: cat.name,
+        icon: cat.icon,
+        diff,
+      }
+    })
+      .filter((item) => Math.abs(item.diff) >= 0.1)
+      .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff))
+      .slice(0, 3)
+  }, [weights])
 
   // Debounced syncToURL
   const debouncedSyncRef = useRef(debounce(syncToURL, 300))
@@ -319,7 +343,7 @@ export default function App() {
 
       {/* Main content */}
       <main className="flex-1 min-w-0">
-        <div className="max-w-4xl mx-auto px-4 py-6 lg:py-8">
+        <div className="mx-auto max-w-4xl px-4 pb-24 pt-6 lg:py-8 lg:pb-8">
           <Header
             lastUpdated={ipcData.lastUpdated}
             dataMonth={ipcData.months[ipcData.months.length - 1]}
@@ -360,9 +384,14 @@ export default function App() {
             />
           )}
           <ShareSuggestion difference={result.difference} isCustom={isCustom} personalIPC={result.personalIPC} />
-          <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+          <TabNavigation
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            mobileSticky
+            showDesgloseBadge
+          />
           {activeTab === 'evolucion' && (
-            <div role="tabpanel" id="evolucion-panel" aria-labelledby="evolucion-tab">
+            <div role="tabpanel" id="evolucion-panel">
               <Suspense fallback={<LazyFallback />}>
                 <EvolutionChart
                   ref={chartRef}
@@ -375,7 +404,43 @@ export default function App() {
             </div>
           )}
           {activeTab === 'desglose' && (
-            <div role="tabpanel" id="desglose-panel" aria-labelledby="desglose-tab">
+            <div role="tabpanel" id="desglose-panel">
+              <Card className="mb-4 border-primary/30 bg-primary/5">
+                <CardContent className="py-4">
+                  <p className="text-sm font-medium text-foreground">
+                    Principales diferencias de tu cesta frente al INE
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Ajusta tus pesos para adaptar el cálculo a tu realidad.
+                  </p>
+                  {isCustom ? (
+                    topWeightDifferences.length > 0 ? (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {topWeightDifferences.map((item) => (
+                          <span
+                            key={item.code}
+                            className="inline-flex items-center gap-1 rounded-full border border-border bg-background/70 px-2 py-1 text-xs text-muted-foreground"
+                          >
+                            <span>{item.icon}</span>
+                            <span className="max-w-[10rem] truncate">{item.name}</span>
+                            <span className={item.diff >= 0 ? 'text-red-400' : 'text-emerald-400'}>
+                              {item.diff >= 0 ? '+' : ''}{item.diff.toFixed(1)} pp
+                            </span>
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Ya estás casi en la media oficial. Ajusta sliders para afinar aún más.
+                      </p>
+                    )
+                  ) : (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      Aún usas los pesos oficiales del INE. Elige un preset o mueve sliders para ver tus diferencias.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
               <PresetSelector weights={weights} onSelect={handlePresetSelect} />
               <WeightSliders
                 weights={weights}
@@ -389,7 +454,7 @@ export default function App() {
             </div>
           )}
           {activeTab === 'sueldo' && (
-            <div role="tabpanel" id="sueldo-panel" aria-labelledby="sueldo-tab">
+            <div role="tabpanel" id="sueldo-panel">
               <Suspense fallback={<LazyFallback />}>
                 <SalaryCalculator
                   personalIPC={result.personalIPC}
@@ -400,7 +465,7 @@ export default function App() {
             </div>
           )}
           {activeTab === 'regiones' && (
-            <div role="tabpanel" id="regiones-panel" aria-labelledby="regiones-tab">
+            <div role="tabpanel" id="regiones-panel">
               <Suspense fallback={<LazyFallback />}>
                 <RegionRanking
                   ipcData={ipcData}

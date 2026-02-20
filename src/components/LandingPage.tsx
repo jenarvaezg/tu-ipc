@@ -29,7 +29,7 @@ export default function LandingPage({ onStart }: LandingPageProps) {
         <div className="absolute top-4 right-4 z-10">
           <ThemeToggle />
         </div>
-        <div className="max-w-5xl mx-auto px-4 py-16">
+        <div className="max-w-5xl mx-auto px-4 py-12 md:py-14">
           <h2 className="text-3xl font-bold text-center mb-2">
             Descubre tu perfil
           </h2>
@@ -55,12 +55,12 @@ export default function LandingPage({ onStart }: LandingPageProps) {
         {/* Animated gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-background animate-gradient" />
 
-        <div className="relative max-w-5xl mx-auto px-4 py-16 md:py-24">
+        <div className="relative mx-auto max-w-5xl px-4 py-12 md:py-20">
           <div
             className={`text-center transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
           >
             {/* Title with emphasis */}
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-4">
+            <h1 className="mb-3 text-4xl font-bold tracking-tight md:text-6xl lg:text-7xl">
               <span className="text-foreground">Tu</span>{" "}
               <span className="text-primary relative inline-block">
                 IPC
@@ -68,14 +68,13 @@ export default function LandingPage({ onStart }: LandingPageProps) {
               </span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-muted-foreground font-light mb-6">
+            <p className="mb-4 text-lg font-light text-muted-foreground md:text-2xl">
               Calculadora de inflación personal
             </p>
 
-            <p className="text-base md:text-lg text-muted-foreground/80 max-w-2xl mx-auto mb-10 leading-relaxed">
-              Ajusta tus hábitos de consumo para descubrir cómo te afecta la
-              inflación según tus gastos. Compara tu IPC personal con el oficial
-              y entiende el impacto en tu economía.
+            <p className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
+              Ajusta tus hábitos de consumo, compara con el IPC oficial y entiende
+              en segundos cómo impacta la inflación en tu economía.
             </p>
 
             {/* CTA Buttons */}
@@ -101,9 +100,9 @@ export default function LandingPage({ onStart }: LandingPageProps) {
       </div>
 
       {/* Features Section */}
-      <div className="max-w-6xl mx-auto px-4 py-12">
+      <div className="mx-auto max-w-6xl px-4 py-10">
         <div
-          className="grid md:grid-cols-3 gap-6"
+          className="grid gap-4 md:grid-cols-3"
           style={{ animation: "slide-up 0.6s ease-out 0.2s both" }}
         >
           <Card
@@ -160,12 +159,12 @@ export default function LandingPage({ onStart }: LandingPageProps) {
 
       {/* How it works Section */}
       <div className="bg-muted/30">
-        <div className="max-w-5xl mx-auto px-4 py-16">
-          <h2 className="text-2xl md:text-3xl font-bold text-center mb-12">
+        <div className="mx-auto max-w-5xl px-4 py-12">
+          <h2 className="mb-8 text-center text-2xl font-bold md:text-3xl">
             Cómo funciona
           </h2>
 
-          <div className="space-y-8">
+          <div className="space-y-6">
             <div
               className="flex flex-col md:flex-row gap-4 items-start"
               style={{ animation: "slide-up 0.6s ease-out 0.3s both" }}
@@ -178,10 +177,8 @@ export default function LandingPage({ onStart }: LandingPageProps) {
                   Ajusta los pesos de tus categorías de gasto
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Usa los controles deslizantes para distribuir tu presupuesto
-                  entre alimentación, vivienda, transporte y otras 9 categorías.
-                  ¿Gastas más en alquiler que la media? ¿Menos en ocio?
-                  Personaliza tu cesta.
+                  Distribuye tu presupuesto entre 12 categorías para reflejar tu
+                  realidad: alquiler, alimentación, transporte, ocio y más.
                 </p>
               </div>
             </div>
@@ -198,9 +195,8 @@ export default function LandingPage({ onStart }: LandingPageProps) {
                   Selecciona el periodo que te interesa
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Elige tu comunidad autónoma y el rango de fechas (último año,
-                  dos años, periodo personalizado). Los datos provienen del INE
-                  y se actualizan mensualmente.
+                  Elige comunidad autónoma y rango de fechas. Trabajas siempre
+                  con datos oficiales del INE actualizados mensualmente.
                 </p>
               </div>
             </div>
@@ -217,17 +213,15 @@ export default function LandingPage({ onStart }: LandingPageProps) {
                   Descubre tu inflación personal
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Visualiza gráficos interactivos con la evolución de tu IPC,
-                  compara con el oficial, analiza categorías individuales y
-                  calcula cuánto debería subir tu sueldo para mantener tu poder
-                  adquisitivo.
+                  Obtén tu IPC personal, compáralo con la media oficial y detecta
+                  qué categorías explican la diferencia.
                 </p>
               </div>
             </div>
           </div>
 
           {/* Final CTA */}
-          <div className="text-center mt-12">
+          <div className="text-center mt-10">
             <Button
               size="lg"
               onClick={() => setShowQuiz(true)}

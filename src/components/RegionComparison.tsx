@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { REGIONS } from '@/data/regions'
 import { COMPARISON_COLORS } from '@/data/constants'
 import { ChevronDown, ChevronUp, X } from 'lucide-react'
@@ -28,16 +27,18 @@ export default function RegionComparison({ currentRegion, comparisonRegions, onT
             if (!region) return null
             const color = COMPARISON_COLORS[i % COMPARISON_COLORS.length]
             return (
-              <Badge
+              <Button
                 key={code}
                 variant="outline"
-                className="border-2 cursor-pointer hover:opacity-80 transition-opacity"
+                size="sm"
+                className="h-7 border-2 px-2 text-xs"
                 style={{ borderColor: color, color }}
                 onClick={() => onToggle(code)}
+                aria-label={`Quitar comparación con ${region.name}`}
               >
                 {region.name}
                 <X className="ml-1 h-3 w-3" />
-              </Badge>
+              </Button>
             )
           })}
           <Button

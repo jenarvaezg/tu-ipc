@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CATEGORIES, OFFICIAL_WEIGHTS } from "@/data/categories";
@@ -22,6 +22,12 @@ interface Question {
   text: string;
   context: string;
   options: QuizOption[];
+}
+
+interface PersistedQuizState {
+  step: number;
+  answers: (number | null)[];
+  showSummary: boolean;
 }
 
 const CATEGORY_SHORT_NAMES: Record<string, string> = {
@@ -410,6 +416,8 @@ const QUESTIONS: Question[] = [
   },
 ];
 
+const QUIZ_PROGRESS_KEY = "tu-ipc-quiz-progress";
+
 function normalizeWeights(
   weights: Record<string, number>,
 ): Record<string, number> {
@@ -438,17 +446,87 @@ function getCategoryIcon(code: string): string {
   return CATEGORIES.find((c) => c.code === code)?.icon || "";
 }
 
+function clearQuizProgress() {
+  try {
+    sessionStorage.removeItem(QUIZ_PROGRESS_KEY);
+  } catch {
+    // ignore
+  }
+}
+
+function loadQuizProgress(): PersistedQuizState | null {
+  try {
+    const raw = sessionStorage.getItem(QUIZ_PROGRESS_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PersistedQuizState;
+
+    if (
+      typeof parsed !== "object" ||
+      parsed === null ||
+      typeof parsed.step !== "number" ||
+      !Array.isArray(parsed.answers) ||
+      typeof parsed.showSummary !== "boolean"
+    ) {
+      return null;
+    }
+
+    if (
+      parsed.step < 0 ||
+      parsed.step > QUESTIONS.length - 1 ||
+      parsed.answers.length !== QUESTIONS.length
+    ) {
+      return null;
+    }
+
+    const sanitizedAnswers = parsed.answers.map((answer, idx) => {
+      if (answer === null) return null;
+      if (
+        typeof answer === "number" &&
+        answer >= 0 &&
+        answer < QUESTIONS[idx].options.length
+      ) {
+        return answer;
+      }
+      return null;
+    });
+
+    return {
+      step: parsed.step,
+      answers: sanitizedAnswers,
+      showSummary: parsed.showSummary,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export default function OnboardingQuiz({
   onComplete,
   onSkip,
 }: OnboardingQuizProps) {
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<(number | null)[]>(() =>
-    new Array(QUESTIONS.length).fill(null),
+  const initialProgress = useMemo(() => loadQuizProgress(), []);
+  const [step, setStep] = useState(initialProgress?.step ?? 0);
+  const [answers, setAnswers] = useState<(number | null)[]>(
+    () => initialProgress?.answers ?? new Array(QUESTIONS.length).fill(null),
   );
-  const [showSummary, setShowSummary] = useState(false);
+  const [showSummary, setShowSummary] = useState(
+    initialProgress?.showSummary ?? false,
+  );
 
   const selectedOption = answers[step];
+
+  useEffect(() => {
+    try {
+      const payload: PersistedQuizState = {
+        step,
+        answers,
+        showSummary,
+      };
+      sessionStorage.setItem(QUIZ_PROGRESS_KEY, JSON.stringify(payload));
+    } catch {
+      // ignore
+    }
+  }, [step, answers, showSummary]);
 
   const handleSelect = useCallback(
     (optionIndex: number) => {
@@ -478,10 +556,17 @@ export default function OnboardingQuiz({
   }, [step, showSummary]);
 
   const handleComplete = useCallback(() => {
+    clearQuizProgress();
     const w = computeWeights(answers);
     trackEvent("quiz_complete");
     onComplete(w);
   }, [answers, onComplete]);
+
+  const handleSkip = useCallback(() => {
+    clearQuizProgress();
+    trackEvent("quiz_skip");
+    onSkip();
+  }, [onSkip]);
 
   const finalWeights = useMemo(() => computeWeights(answers), [answers]);
 
@@ -569,10 +654,7 @@ export default function OnboardingQuiz({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => {
-              trackEvent("quiz_skip");
-              onSkip();
-            }}
+            onClick={handleSkip}
             className="text-muted-foreground"
           >
             Saltar al calculador
@@ -585,9 +667,10 @@ export default function OnboardingQuiz({
   const question = QUESTIONS[step];
   const currentOption =
     selectedOption !== null ? question.options[selectedOption] : null;
+  const hasSelection = selectedOption !== null;
 
   return (
-    <div className="max-w-lg mx-auto">
+    <div className="max-w-lg mx-auto pb-32">
       {/* Progress */}
       <div className="flex items-center justify-center gap-2 mb-2">
         {QUESTIONS.map((_, i) => (
@@ -664,24 +747,24 @@ export default function OnboardingQuiz({
         </CardContent>
       </Card>
 
-      {/* Navigation */}
-      <div className="flex items-center justify-between mt-4">
-        <div>
-          {step > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleBack}
-              className="text-muted-foreground"
-            >
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Anterior
-            </Button>
-          )}
-        </div>
-        <div>
-          {selectedOption !== null && (
-            <Button size="sm" onClick={handleNext}>
+      {/* Sticky actions (mobile + desktop) */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-background/95 backdrop-blur">
+        <div className="mx-auto max-w-3xl px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3">
+          <div className="flex items-center justify-between gap-2">
+            {step > 0 ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBack}
+                className="text-muted-foreground"
+              >
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Anterior
+              </Button>
+            ) : (
+              <div className="w-24" />
+            )}
+            <Button size="sm" onClick={handleNext} disabled={!hasSelection}>
               {step < QUESTIONS.length - 1 ? (
                 <>
                   Siguiente
@@ -694,22 +777,18 @@ export default function OnboardingQuiz({
                 </>
               )}
             </Button>
-          )}
+          </div>
+          <div className="mt-2 text-center sm:text-right">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSkip}
+              className="text-muted-foreground"
+            >
+              Saltar al calculador
+            </Button>
+          </div>
         </div>
-      </div>
-
-      <div className="text-center mt-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            trackEvent("quiz_skip");
-            onSkip();
-          }}
-          className="text-muted-foreground"
-        >
-          Saltar al calculador
-        </Button>
       </div>
     </div>
   );
