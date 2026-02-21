@@ -46,7 +46,7 @@
         <p>Por favor, activa JavaScript en tu navegador.</p>
       </div>
     </noscript>
-    <script>try{var t=localStorage.getItem('tu-ipc-theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark')}catch(e){}</script>
+    <script>try{var t=localStorage.getItem('tu-ipc-theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark');var ct=new URLSearchParams(location.search).get('theme')||localStorage.getItem('tu-ipc-color-theme');if(ct)document.documentElement.setAttribute('data-theme',ct)}catch(e){}</script>
     <div id="root"></div>
     <script>
       // GitHub Pages SPA: restore path from 404.html redirect

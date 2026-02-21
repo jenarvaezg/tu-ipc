@@ -66,6 +66,14 @@ body {
     --chart-4: 265 55% 50%;
     --chart-5: 155 60% 38%;
 
+    --rubricas-1: 45 100% 32%;
+    --rubricas-2: 49 100% 41%;
+    --rubricas-3: 47 63% 26%;
+    --rubricas-4: 50 100% 27%;
+    --rubricas-5: 48 100% 36%;
+    --rubricas-6: 47 71% 29%;
+    --rubricas-reference: 0 72% 50%;
+
     --radius: 0.625rem;
   }
 
@@ -104,6 +112,53 @@ body {
     --chart-3: 42 90% 55%;
     --chart-4: 265 60% 60%;
     --chart-5: 155 70% 45%;
+
+    --rubricas-1: 45 100% 42%;
+    --rubricas-2: 49 100% 51%;
+    --rubricas-3: 47 63% 36%;
+    --rubricas-4: 50 100% 37%;
+    --rubricas-5: 48 100% 46%;
+    --rubricas-6: 47 71% 39%;
+    --rubricas-reference: 0 72% 55%;
   }
 
+  [data-theme="hesperides"] {
+    --primary: 48 100% 48%;
+    --primary-foreground: 0 0% 10%;
+    --ring: 48 100% 48%;
+
+    --chart-1: 48 100% 48%;
+    --chart-2: 46 100% 39%;
+    --chart-3: 43 50% 30%;
+    --chart-4: 40 40% 18%;
+    --chart-5: 38 40% 12%;
+
+    --rubricas-1: 48 100% 48%;
+    --rubricas-2: 46 100% 39%;
+    --rubricas-3: 43 50% 30%;
+    --rubricas-4: 40 40% 18%;
+    --rubricas-5: 48 80% 42%;
+    --rubricas-6: 44 60% 25%;
+    --rubricas-reference: 0 72% 50%;
+  }
+
+  [data-theme="hesperides"].dark {
+    --primary: 48 100% 55%;
+    --primary-foreground: 0 0% 10%;
+    --ring: 48 100% 55%;
+
+    --chart-1: 48 100% 55%;
+    --chart-2: 46 100% 47%;
+    --chart-3: 43 50% 40%;
+    --chart-4: 40 40% 28%;
+    --chart-5: 38 40% 22%;
+
+    --rubricas-1: 48 100% 55%;
+    --rubricas-2: 46 100% 47%;
+    --rubricas-3: 43 50% 40%;
+    --rubricas-4: 40 40% 28%;
+    --rubricas-5: 48 80% 52%;
+    --rubricas-6: 44 60% 35%;
+    --rubricas-reference: 0 72% 55%;
+  }
 }

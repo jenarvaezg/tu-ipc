@@ -43,6 +43,11 @@ const LOCAL_STORAGE_KEYS = [
     key: "tu-ipc-salary",
     description: "Los datos introducidos en la calculadora de sueldo",
   },
+  {
+    key: "tu-ipc-color-theme",
+    description:
+      "Tu paleta de colores seleccionada (para integraciones de marca)",
+  },
 ];
 
 export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
@@ -67,15 +72,10 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
             . Esto significa que:
           </p>
           <ul className="text-muted-foreground space-y-2 ml-4 list-disc mb-4">
+            <li>No se instalan cookies de analítica en tu navegador</li>
+            <li>No se almacenan identificadores personales</li>
             <li>
-              No se instalan cookies de analítica en tu navegador
-            </li>
-            <li>
-              No se almacenan identificadores personales
-            </li>
-            <li>
-              Google solo recibe pings anonimizados y modelados
-              estadísticamente
+              Google solo recibe pings anonimizados y modelados estadísticamente
             </li>
             <li>
               La dirección IP se anonimiza antes de cualquier procesamiento

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { getThemeColor } from '@/data/themes'
 import { Moon, Sun } from 'lucide-react'
 
 function getInitialTheme(): 'light' | 'dark' {
@@ -16,6 +17,11 @@ export default function ThemeToggle() {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark')
     localStorage.setItem('tu-ipc-theme', theme)
+    const colorTheme = document.documentElement.getAttribute('data-theme')
+    const meta = document.querySelector('meta[name="theme-color"]')
+    if (meta) {
+      meta.setAttribute('content', getThemeColor(colorTheme, theme === 'dark'))
+    }
   }, [theme])
 
   return (

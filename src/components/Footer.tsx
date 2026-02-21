@@ -12,6 +12,7 @@ function handleClearData() {
     "tu-ipc-locked",
     "tu-ipc-region",
     "tu-ipc-theme",
+    "tu-ipc-color-theme",
     "tu-ipc-salary",
   ];
   for (const key of keys) {

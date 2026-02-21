@@ -1,4 +1,5 @@
 import { CATEGORIES, OFFICIAL_WEIGHTS } from '@/data/categories'
+import { isValidThemeId } from '@/data/themes'
 
 interface URLState {
   weights?: Record<string, number>
@@ -11,6 +12,7 @@ interface URLState {
   rubricasSeriesIds?: string[]
   rubricasFrom?: string
   rubricasTo?: string
+  theme?: string
 }
 
 // Parse URL params into state. Returns only fields that are present AND valid.
@@ -80,6 +82,12 @@ export function parseURLState(): URLState {
     result.comparisonRegions = cr.split(',').filter(Boolean)
   }
 
+  // Parse color theme: theme=hesperides
+  const themeParam = params.get('theme')
+  if (themeParam && isValidThemeId(themeParam)) {
+    result.theme = themeParam
+  }
+
   return result
 }
 
@@ -127,6 +135,12 @@ export function syncToURL(state: {
   // Keep embed mode stable while syncing calculator params.
   if (current.get('embed') === '1') {
     params.set('embed', '1')
+  }
+
+  // Keep color theme stable while syncing calculator params.
+  const theme = current.get('theme')
+  if (theme) {
+    params.set('theme', theme)
   }
 
   // Preserve rubricas explorer state while syncing calculator params.
