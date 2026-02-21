@@ -54,10 +54,9 @@
         var redirect = sessionStorage.getItem('spa-redirect');
         if (redirect) {
           sessionStorage.removeItem('spa-redirect');
-          var base = '/tu-ipc/';
-          if (window.location.pathname === base || window.location.pathname === base.slice(0, -1)) {
-            window.history.replaceState(null, '', base + redirect);
-          }
+          var base = window.location.pathname || '/';
+          if (!base.endsWith('/')) base += '/';
+          window.history.replaceState(null, '', base + redirect);
         }
       })();
     </script>

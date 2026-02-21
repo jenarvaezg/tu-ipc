@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
 import {
   Card,
   CardContent,
@@ -53,6 +53,7 @@ export default function SalaryCalculator({
   startMonth,
   endMonth,
 }: SalaryCalculatorProps) {
+  const salaryTypeLabelId = useId();
   const [inputs, setInputs] = useState<SalaryInputs>(loadSalaryInputs);
 
   const salaryBefore = parseFloat(inputs.before) || 0;
@@ -89,13 +90,16 @@ export default function SalaryCalculator({
         <CardContent className="space-y-6">
           {/* Pay type selector */}
           <div>
-            <label className="block text-sm font-medium text-muted-foreground mb-2">
+            <label
+              id={salaryTypeLabelId}
+              className="block text-sm font-medium text-muted-foreground mb-2"
+            >
               Tipo de salario
             </label>
             <div
               className="flex gap-2"
               role="group"
-              aria-label="Tipo de salario"
+              aria-labelledby={salaryTypeLabelId}
             >
               {PAY_TYPES.map((pt) => (
                 <Button

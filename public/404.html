@@ -6,12 +6,18 @@
     <script>
       // GitHub Pages SPA redirect: store the path and redirect to base
       // so the React app can pick it up and render the right page.
-      var base = '/tu-ipc/';
-      var path = window.location.pathname;
-      if (path.indexOf(base) === 0) {
-        // Store the sub-path after the base (e.g. "metodologia")
-        sessionStorage.setItem('spa-redirect', path.slice(base.length) + window.location.search + window.location.hash);
+      var path = window.location.pathname || '/';
+      var segments = path.split('/').filter(Boolean);
+      var knownRoutes = ['metodologia', 'privacidad'];
+      var base = '/';
+
+      // Supports both custom domain root (/) and project pages (/repo/).
+      if (segments.length > 1 && knownRoutes.indexOf(segments[0]) === -1) {
+        base = '/' + segments[0] + '/';
       }
+
+      var subPath = path.indexOf(base) === 0 ? path.slice(base.length) : path.replace(/^\//, '');
+      sessionStorage.setItem('spa-redirect', subPath + window.location.search + window.location.hash);
       window.location.replace(base);
     </script>
   </head>

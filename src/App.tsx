@@ -32,7 +32,7 @@ const PrivacyPolicy = lazy(() => import('@/components/PrivacyPolicy'))
 
 const ipcData = ipcDataRaw as IPCData
 
-const BASE = import.meta.env.BASE_URL // '/tu-ipc/' in prod, '/' in dev
+const BASE = import.meta.env.BASE_URL // configurable via BASE_URL, '/' by default
 
 function getSubRoute(): string {
   const path = window.location.pathname
@@ -40,7 +40,9 @@ function getSubRoute(): string {
   return sub.replace(/\/$/, '')
 }
 
-const isEmbed = new URLSearchParams(window.location.search).get('embed') === '1'
+function getIsEmbed(): boolean {
+  return new URLSearchParams(window.location.search).get('embed') === '1'
+}
 
 const STORAGE_KEY_REGION = 'tu-ipc-region'
 
@@ -67,6 +69,8 @@ function saveRegion(region: string) {
 }
 
 export default function App() {
+  const [isEmbed, setIsEmbed] = useState(getIsEmbed)
+
   // URL params take priority over localStorage
   const urlState = useMemo(() => parseURLState(), [])
 
@@ -78,9 +82,11 @@ export default function App() {
       || urlState.startMonth != null || urlState.endMonth != null || urlState.region != null || urlState.activeTab != null
   }, [urlState])
 
-  const [showLanding, setShowLanding] = useState(() => initialRoute !== 'metodologia' && initialRoute !== 'privacidad' && !hasCalcParams)
-  const [showMethodology, setShowMethodology] = useState(() => initialRoute === 'metodologia')
-  const [showPrivacy, setShowPrivacy] = useState(() => initialRoute === 'privacidad')
+  const [showLanding, setShowLanding] = useState(
+    () => !isEmbed && initialRoute !== 'metodologia' && initialRoute !== 'privacidad' && !hasCalcParams
+  )
+  const [showMethodology, setShowMethodology] = useState(() => !isEmbed && initialRoute === 'metodologia')
+  const [showPrivacy, setShowPrivacy] = useState(() => !isEmbed && initialRoute === 'privacidad')
 
   const {
     weights,
@@ -140,7 +146,6 @@ export default function App() {
   const {
     comparisonIds,
     comparisonRegions,
-    regionComparisonResults,
     allComparisons,
     handleToggleComparison,
     handleClearComparisons,
@@ -228,6 +233,15 @@ export default function App() {
   // Browser back/forward: derive page from URL
   useEffect(() => {
     function handlePopState(e: PopStateEvent) {
+      const embedMode = getIsEmbed()
+      setIsEmbed(embedMode)
+      if (embedMode) {
+        setShowMethodology(false)
+        setShowPrivacy(false)
+        setShowLanding(false)
+        return
+      }
+
       const route = getSubRoute()
       if (route === 'metodologia') {
         setShowMethodology(true)
@@ -249,7 +263,7 @@ export default function App() {
             || params.endMonth != null || params.region != null
             || params.activeTab != null || params.comparisonIds != null
             || params.comparisonRegions != null
-          setShowLanding(!hasParams)
+          setShowLanding(!hasParams && !embedMode)
         }
       }
     }
@@ -269,30 +283,6 @@ export default function App() {
         ? 'Política de privacidad de Tu IPC Personal: analítica sin cookies, datos locales, código abierto.'
         : 'Ajusta los pesos de gasto a tu estilo de vida y compara tu inflación personal con el IPC oficial del INE. Datos actualizados por comunidad autónoma.',
   )
-
-  if (showMethodology) {
-    return (
-      <main>
-        <Suspense fallback={<LazyFallback />}>
-          <Methodology onBack={() => window.history.back()} />
-        </Suspense>
-      </main>
-    )
-  }
-
-  if (showPrivacy) {
-    return (
-      <main>
-        <Suspense fallback={<LazyFallback />}>
-          <PrivacyPolicy onBack={() => window.history.back()} />
-        </Suspense>
-      </main>
-    )
-  }
-
-  if (showLanding) {
-    return <main><LandingPage onStart={handleLandingStart} /></main>
-  }
 
   if (isEmbed) {
     return (
@@ -318,6 +308,30 @@ export default function App() {
     )
   }
 
+  if (showMethodology) {
+    return (
+      <main>
+        <Suspense fallback={<LazyFallback />}>
+          <Methodology onBack={() => window.history.back()} />
+        </Suspense>
+      </main>
+    )
+  }
+
+  if (showPrivacy) {
+    return (
+      <main>
+        <Suspense fallback={<LazyFallback />}>
+          <PrivacyPolicy onBack={() => window.history.back()} />
+        </Suspense>
+      </main>
+    )
+  }
+
+  if (showLanding) {
+    return <main><LandingPage onStart={handleLandingStart} /></main>
+  }
+
   return (
     <div className="min-h-screen lg:flex">
       {/* Sidebar — desktop: visible, mobile: Sheet */}
@@ -336,7 +350,7 @@ export default function App() {
         comparisonRegions={comparisonRegions}
         onToggleRegionComparison={handleToggleRegionComparison}
         onClearRegionComparisons={handleClearRegionComparisons}
-        maxRegionComparisons={4 - allComparisons.length + regionComparisonResults.length}
+        maxRegionComparisons={Math.max(0, 4 - comparisonIds.length)}
         mobileOpen={mobileFiltersOpen}
         onMobileOpenChange={setMobileFiltersOpen}
       />

@@ -7,9 +7,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 npm run dev          # Start Vite dev server (localhost:5173)
 npm run build        # TypeScript check + Vite production build
+npm run lint         # TypeScript lint-like check (noEmit)
 npm run preview      # Preview production build
 npm run test         # Run Vitest tests
 npm run test:watch   # Run Vitest in watch mode
+npm run test:coverage # Run Vitest with coverage
 npm run download-data  # Fetch fresh IPC data from INE API → src/data/ipc-data.json
 ```
 
@@ -49,11 +51,11 @@ Personal IPC calculator: users adjust 12 ECOICOP spending category weights to co
 - `src/utils/formatMonth.ts` — Format "2024-01" → "enero 2024"
 - `src/data/categories.ts` — 12 ECOICOP categories with official weights and keyword matchers
 - `src/data/constants.ts` — Shared constants (COMPARISON_COLORS)
-- `src/data/presets.ts` — Weight presets (oficial, 6 lifestyle profiles)
+- `src/data/presets.ts` — Weight presets (oficial + perfiles de estilo de vida)
 - `src/data/historicalEvents.ts` — Historical events for chart annotations (COVID, Ukraine, etc.)
 - `src/data/types.ts` — TypeScript interfaces (IPCData, IPCResult, CategoryVariation)
 - `src/components/` — Presentational components (all use shadcn/ui primitives from `ui/`)
-- `src/components/OnboardingQuiz.tsx` — 5-question onboarding wizard to generate personalized weights
+- `src/components/OnboardingQuiz.tsx` — 7-question onboarding wizard to generate personalized weights
 - `src/components/RegionRanking.tsx` — Region ranking by personal IPC (lazy loaded)
 - `src/components/NarrativeSummary.tsx` — Generated text summary of personal inflation
 - `src/components/ShareSuggestion.tsx` — Dismissable share prompt when difference > 1.5pp
@@ -65,7 +67,7 @@ Personal IPC calculator: users adjust 12 ECOICOP spending category weights to co
 
 ## Deployment
 
-Deployed to GitHub Pages via `.github/workflows/deploy.yml`. CI sets `BASE_URL=/tu-ipc/` for asset paths. Do not modify `deploy.yml` or `vite.config.ts` base path logic.
+Deployed to GitHub Pages via `.github/workflows/deploy.yml`. `vite.config.ts` reads `BASE_URL` when provided, otherwise defaults to `/`. SPA redirect scripts (`index.html` + `public/404.html`) resolve the base path at runtime to support both custom-domain root and project-page paths.
 
 ## Conventions
 

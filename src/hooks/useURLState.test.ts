@@ -110,7 +110,7 @@ describe('syncToURL', () => {
   beforeEach(() => {
     lastURL = undefined
     Object.defineProperty(window, 'location', {
-      value: { ...window.location, pathname: '/' },
+      value: { ...window.location, pathname: '/', search: '' },
       writable: true,
     })
     window.history.replaceState = (_data: unknown, _title: string, url?: string | URL | null) => {
@@ -179,5 +179,19 @@ describe('syncToURL', () => {
     })
     expect(lastURL).toContain('c=joven')
     expect(lastURL).toContain('cr=cataluna%2Cmadrid')
+  })
+
+  it('preserves embed mode query param', () => {
+    setSearch('?embed=1')
+    syncToURL({
+      weights: { ...OFFICIAL_WEIGHTS },
+      startMonth: '2024-01',
+      endMonth: '2025-01',
+      region: 'nacional',
+      activeTab: 'evolucion',
+      comparisonIds: [],
+      comparisonRegions: [],
+    })
+    expect(lastURL).toContain('embed=1')
   })
 })

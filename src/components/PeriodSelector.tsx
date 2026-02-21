@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useId } from 'react'
 
 interface PeriodSelectorProps {
   months: string[]
@@ -36,6 +37,10 @@ export default function PeriodSelector({
   onEndChange,
   compact,
 }: PeriodSelectorProps) {
+  const startSelectId = useId()
+  const endSelectId = useId()
+  const startLabelId = `${startSelectId}-label`
+  const endLabelId = `${endSelectId}-label`
   const lastMonth = months[months.length - 1]
 
   const ALL_PRESETS = [
@@ -104,7 +109,7 @@ export default function PeriodSelector({
         </div>
         <div className="space-y-2">
           <div>
-            <label className="block text-xs text-muted-foreground mb-1">Desde</label>
+            <label id={startLabelId} htmlFor={startSelectId} className="block text-xs text-muted-foreground mb-1">Desde</label>
             <Select value={startMonth} onValueChange={(v) => {
               onStartChange(v)
               if (v >= endMonth) {
@@ -112,7 +117,7 @@ export default function PeriodSelector({
                 if (nextIdx < months.length) onEndChange(months[nextIdx])
               }
             }}>
-              <SelectTrigger className="w-full h-9">
+              <SelectTrigger id={startSelectId} aria-labelledby={startLabelId} className="w-full h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -123,7 +128,7 @@ export default function PeriodSelector({
             </Select>
           </div>
           <div>
-            <label className="block text-xs text-muted-foreground mb-1">Hasta</label>
+            <label id={endLabelId} htmlFor={endSelectId} className="block text-xs text-muted-foreground mb-1">Hasta</label>
             <Select value={endMonth} onValueChange={(v) => {
               onEndChange(v)
               if (v <= startMonth) {
@@ -131,7 +136,7 @@ export default function PeriodSelector({
                 if (prevIdx >= 0) onStartChange(months[prevIdx])
               }
             }}>
-              <SelectTrigger className="w-full h-9">
+              <SelectTrigger id={endSelectId} aria-labelledby={endLabelId} className="w-full h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -171,7 +176,7 @@ export default function PeriodSelector({
         </div>
         <div className="flex flex-wrap gap-3 items-center">
           <div>
-            <label className="block text-xs text-muted-foreground mb-1">Desde</label>
+            <label id={startLabelId} htmlFor={startSelectId} className="block text-xs text-muted-foreground mb-1">Desde</label>
             <Select value={startMonth} onValueChange={(v) => {
               onStartChange(v)
               if (v >= endMonth) {
@@ -179,7 +184,7 @@ export default function PeriodSelector({
                 if (nextIdx < months.length) onEndChange(months[nextIdx])
               }
             }}>
-              <SelectTrigger className="w-[140px] h-9">
+              <SelectTrigger id={startSelectId} aria-labelledby={startLabelId} className="w-[140px] h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -190,7 +195,7 @@ export default function PeriodSelector({
             </Select>
           </div>
           <div>
-            <label className="block text-xs text-muted-foreground mb-1">Hasta</label>
+            <label id={endLabelId} htmlFor={endSelectId} className="block text-xs text-muted-foreground mb-1">Hasta</label>
             <Select value={endMonth} onValueChange={(v) => {
               onEndChange(v)
               if (v <= startMonth) {
@@ -198,7 +203,7 @@ export default function PeriodSelector({
                 if (prevIdx >= 0) onStartChange(months[prevIdx])
               }
             }}>
-              <SelectTrigger className="w-[140px] h-9">
+              <SelectTrigger id={endSelectId} aria-labelledby={endLabelId} className="w-[140px] h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

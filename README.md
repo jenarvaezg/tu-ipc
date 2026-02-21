@@ -31,8 +31,10 @@ npm run dev          # localhost:5173
 
 ```bash
 npm run build        # TypeScript check + build de produccion
+npm run lint         # TypeScript check sin emitir archivos
 npm test             # Vitest
 npm run test:watch   # Vitest en modo watch
+npm run test:coverage # Vitest con cobertura
 npm run download-data  # Descarga datos frescos de la API del INE
 ```
 

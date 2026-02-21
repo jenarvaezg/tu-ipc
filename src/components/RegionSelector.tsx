@@ -6,6 +6,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { REGIONS } from '@/data/regions'
+import { useId } from 'react'
 
 interface RegionSelectorProps {
   value: string
@@ -14,12 +15,15 @@ interface RegionSelectorProps {
 }
 
 export default function RegionSelector({ value, onChange, compact }: RegionSelectorProps) {
+  const regionSelectId = useId()
+  const regionLabelId = `${regionSelectId}-label`
+
   if (compact) {
     return (
       <div className="space-y-1.5">
-        <label className="block text-sm font-medium">Comunidad Autónoma</label>
+        <label id={regionLabelId} htmlFor={regionSelectId} className="block text-sm font-medium">Comunidad Autónoma</label>
         <Select value={value} onValueChange={onChange}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger id={regionSelectId} aria-labelledby={regionLabelId} className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -36,9 +40,9 @@ export default function RegionSelector({ value, onChange, compact }: RegionSelec
 
   return (
     <div className="mb-8 flex items-center gap-3">
-      <label className="text-sm font-medium whitespace-nowrap">Comunidad Autónoma</label>
+      <label id={regionLabelId} htmlFor={regionSelectId} className="text-sm font-medium whitespace-nowrap">Comunidad Autónoma</label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="w-[260px]">
+        <SelectTrigger id={regionSelectId} aria-labelledby={regionLabelId} className="w-[260px]">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

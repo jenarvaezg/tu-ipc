@@ -6,6 +6,11 @@ import ipcDataRaw from '@/data/ipc-data.json'
 import { trackEvent } from '@/utils/analytics'
 
 const ipcData = ipcDataRaw as IPCData
+const MAX_COMPARISONS = 4
+
+function unique(items?: string[]) {
+  return Array.from(new Set(items || []))
+}
 
 export function useComparisons(
   regionCategories: Record<string, IPCCategory>,
@@ -17,8 +22,11 @@ export function useComparisons(
   initialComparisonIds?: string[],
   initialComparisonRegions?: string[]
 ) {
-  const [comparisonIds, setComparisonIds] = useState<string[]>(initialComparisonIds || [])
-  const [comparisonRegions, setComparisonRegions] = useState<string[]>(initialComparisonRegions || [])
+  const initialIds = unique(initialComparisonIds).slice(0, MAX_COMPARISONS)
+  const initialRegions = unique(initialComparisonRegions).slice(0, Math.max(0, MAX_COMPARISONS - initialIds.length))
+
+  const [comparisonIds, setComparisonIds] = useState<string[]>(initialIds)
+  const [comparisonRegions, setComparisonRegions] = useState<string[]>(initialRegions)
 
   const comparisonResults = useMemo(() => {
     const showRegion = comparisonRegions.length > 0 && regionName
@@ -48,7 +56,7 @@ export function useComparisons(
   }, [comparisonRegions, months, weights, startMonth, endMonth])
 
   const allComparisons = useMemo(() => {
-    return [...comparisonResults, ...regionComparisonResults].slice(0, 4)
+    return [...comparisonResults, ...regionComparisonResults].slice(0, MAX_COMPARISONS)
   }, [comparisonResults, regionComparisonResults])
 
   const handleToggleComparison = useCallback((presetId: string) => {
@@ -56,10 +64,13 @@ export function useComparisons(
       if (prev.includes(presetId)) {
         return prev.filter(id => id !== presetId)
       }
+      if (prev.length + comparisonRegions.length >= MAX_COMPARISONS) {
+        return prev
+      }
       trackEvent('comparison_add', { preset_id: presetId })
       return [...prev, presetId]
     })
-  }, [])
+  }, [comparisonRegions.length])
 
   const handleClearComparisons = useCallback(() => {
     setComparisonIds([])
@@ -70,10 +81,13 @@ export function useComparisons(
       if (prev.includes(regionCode)) {
         return prev.filter(r => r !== regionCode)
       }
+      if (comparisonIds.length + prev.length >= MAX_COMPARISONS) {
+        return prev
+      }
       trackEvent('region_compare', { region: regionCode })
       return [...prev, regionCode]
     })
-  }, [])
+  }, [comparisonIds.length])
 
   const handleClearRegionComparisons = useCallback(() => {
     setComparisonRegions([])

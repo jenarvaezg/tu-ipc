@@ -11,14 +11,23 @@ interface RegionComparisonProps {
   onClear: () => void
   maxComparisons: number
   compact?: boolean
+  ariaLabelledBy?: string
 }
 
-export default function RegionComparison({ currentRegion, comparisonRegions, onToggle, onClear, maxComparisons, compact }: RegionComparisonProps) {
+export default function RegionComparison({
+  currentRegion,
+  comparisonRegions,
+  onToggle,
+  onClear,
+  maxComparisons,
+  compact,
+  ariaLabelledBy,
+}: RegionComparisonProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const availableRegions = REGIONS.filter(r => r.code !== currentRegion)
 
   return (
-    <div className={compact ? '' : 'mb-6'}>
+    <div className={compact ? '' : 'mb-6'} role="group" aria-labelledby={ariaLabelledBy}>
       {/* Active region badges — always visible */}
       {comparisonRegions.length > 0 && (
         <div className={`flex flex-wrap items-center gap-1.5 mb-2 ${compact ? 'justify-start' : 'justify-center'}`}>

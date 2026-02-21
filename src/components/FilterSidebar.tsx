@@ -6,7 +6,7 @@ import RegionSelector from '@/components/RegionSelector'
 import PeriodSelector from '@/components/PeriodSelector'
 import ComparisonToggle from '@/components/ComparisonToggle'
 import RegionComparison from '@/components/RegionComparison'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useId } from 'react'
 
 interface FilterSidebarProps {
   // Region
@@ -55,6 +55,9 @@ function FilterSidebarContent({
   onClearRegionComparisons,
   maxRegionComparisons
 }: Omit<FilterSidebarProps, 'mobileOpen' | 'onMobileOpenChange'>) {
+  const profilesLabelId = useId()
+  const regionsLabelId = useId()
+
   return (
     <div className="space-y-6">
       {/* Section: CONFIGURACIÓN */}
@@ -94,23 +97,26 @@ function FilterSidebarContent({
 
         <div className="space-y-4">
           <div>
-            <label className="block text-xs text-muted-foreground mb-2">Perfiles</label>
+            <label id={profilesLabelId} className="block text-xs text-muted-foreground mb-2">Perfiles</label>
             <ComparisonToggle
               comparisonIds={comparisonIds}
               onToggle={onToggleComparison}
               onClear={onClearComparisons}
+              maxComparisons={Math.max(0, 4 - comparisonRegions.length)}
+              ariaLabelledBy={profilesLabelId}
               compact
             />
           </div>
 
           <div>
-            <label className="block text-xs text-muted-foreground mb-2">Regiones</label>
+            <label id={regionsLabelId} className="block text-xs text-muted-foreground mb-2">Regiones</label>
             <RegionComparison
               currentRegion={currentRegion}
               comparisonRegions={comparisonRegions}
               onToggle={onToggleRegionComparison}
               onClear={onClearRegionComparisons}
               maxComparisons={maxRegionComparisons}
+              ariaLabelledBy={regionsLabelId}
               compact
             />
           </div>
@@ -304,7 +310,11 @@ export default function FilterSidebar(props: FilterSidebarProps) {
               comparisonIds={draftComparisonIds}
               onToggleComparison={(presetId) => {
                 setDraftComparisonIds((prev) =>
-                  prev.includes(presetId) ? prev.filter((id) => id !== presetId) : [...prev, presetId]
+                  prev.includes(presetId)
+                    ? prev.filter((id) => id !== presetId)
+                    : prev.length + draftComparisonRegions.length < 4
+                      ? [...prev, presetId]
+                      : prev
                 )
               }}
               onClearComparisons={() => setDraftComparisonIds([])}
@@ -312,7 +322,11 @@ export default function FilterSidebar(props: FilterSidebarProps) {
               comparisonRegions={draftComparisonRegions}
               onToggleRegionComparison={(regionCode) => {
                 setDraftComparisonRegions((prev) =>
-                  prev.includes(regionCode) ? prev.filter((id) => id !== regionCode) : [...prev, regionCode]
+                  prev.includes(regionCode)
+                    ? prev.filter((id) => id !== regionCode)
+                    : prev.length < draftMaxRegionComparisons
+                      ? [...prev, regionCode]
+                      : prev
                 )
               }}
               onClearRegionComparisons={() => setDraftComparisonRegions([])}

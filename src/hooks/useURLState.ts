@@ -75,6 +75,7 @@ export function syncToURL(state: {
   comparisonIds: string[]
   comparisonRegions: string[]
 }) {
+  const current = new URLSearchParams(window.location.search)
   const params = new URLSearchParams()
 
   // Only add weights if they differ from official
@@ -103,6 +104,11 @@ export function syncToURL(state: {
 
   if (state.comparisonRegions.length > 0) {
     params.set('cr', state.comparisonRegions.join(','))
+  }
+
+  // Keep embed mode stable while syncing calculator params.
+  if (current.get('embed') === '1') {
+    params.set('embed', '1')
   }
 
   const search = params.toString()
