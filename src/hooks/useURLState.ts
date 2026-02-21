@@ -8,6 +8,9 @@ interface URLState {
   activeTab?: string
   comparisonIds?: string[]
   comparisonRegions?: string[]
+  rubricasSeriesIds?: string[]
+  rubricasFrom?: string
+  rubricasTo?: string
 }
 
 // Parse URL params into state. Returns only fields that are present AND valid.
@@ -46,8 +49,23 @@ export function parseURLState(): URLState {
 
   // Parse tab: t=evolucion
   const t = params.get('t')
-  if (t && ['evolucion', 'desglose', 'sueldo', 'regiones'].includes(t)) {
+  if (t && ['evolucion', 'rubricas', 'desglose', 'sueldo', 'regiones'].includes(t)) {
     result.activeTab = t
+  }
+
+  const rs = params.get('rs')
+  if (rs) {
+    result.rubricasSeriesIds = rs.split(',').filter(Boolean)
+  }
+
+  const rf = params.get('rf')
+  if (rf && /^\d{4}-\d{2}$/.test(rf)) {
+    result.rubricasFrom = rf
+  }
+
+  const re = params.get('re')
+  if (re && /^\d{4}-\d{2}$/.test(re)) {
+    result.rubricasTo = re
   }
 
   // Parse comparisons: c=joven,pensionista-propietario
@@ -110,6 +128,14 @@ export function syncToURL(state: {
   if (current.get('embed') === '1') {
     params.set('embed', '1')
   }
+
+  // Preserve rubricas explorer state while syncing calculator params.
+  const rs = current.get('rs')
+  const rf = current.get('rf')
+  const re = current.get('re')
+  if (rs) params.set('rs', rs)
+  if (rf) params.set('rf', rf)
+  if (re) params.set('re', re)
 
   const search = params.toString()
   const url = search ? `${window.location.pathname}?${search}` : window.location.pathname

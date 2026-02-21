@@ -25,6 +25,7 @@ import FilterSidebar from '@/components/FilterSidebar'
 import LandingPage from '@/components/LandingPage'
 
 const EvolutionChart = lazy(() => import('@/components/EvolutionChart'))
+const RubricasExplorer = lazy(() => import('@/components/RubricasExplorer'))
 const Methodology = lazy(() => import('@/components/Methodology'))
 const SalaryCalculator = lazy(() => import('@/components/SalaryCalculator'))
 const RegionRanking = lazy(() => import('@/components/RegionRanking'))
@@ -285,6 +286,19 @@ export default function App() {
   )
 
   if (isEmbed) {
+    if (activeTab === 'rubricas') {
+      return (
+        <main className="max-w-6xl mx-auto px-4 py-4">
+          <Suspense fallback={<LazyFallback />}>
+            <RubricasExplorer />
+          </Suspense>
+          <p className="text-xs text-muted-foreground text-center mt-2">
+            Datos del INE · <a href="https://tu-ipc.es" className="underline">tu-ipc.es</a>
+          </p>
+        </main>
+      )
+    }
+
     return (
       <main className="max-w-4xl mx-auto px-4 py-4">
         <KPICards
@@ -414,6 +428,13 @@ export default function App() {
                   comparisons={allComparisons.map(c => ({ label: c.label, data: c.result.evolution, yoyData: c.yoyEvolution }))}
                   isCustom={isCustom}
                 />
+              </Suspense>
+            </div>
+          )}
+          {activeTab === 'rubricas' && (
+            <div role="tabpanel" id="rubricas-panel">
+              <Suspense fallback={<LazyFallback />}>
+                <RubricasExplorer />
               </Suspense>
             </div>
           )}

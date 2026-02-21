@@ -12,7 +12,11 @@ npm run preview      # Preview production build
 npm run test         # Run Vitest tests
 npm run test:watch   # Run Vitest in watch mode
 npm run test:coverage # Run Vitest with coverage
+npm run test:e2e     # Run Playwright E2E suite (build + browser tests)
 npm run download-data  # Fetch fresh IPC data from INE API → src/data/ipc-data.json
+npm run download-rubricas-data # Build rubricas dataset (ECOICOP classes) → src/data/ipc-rubricas.json
+npm run spike:rubricas # Coverage spike for ECOICOP detail levels since 2002
+npm run qa:screenshots # Capture visual QA screenshots with Playwright
 ```
 
 ## Testing
@@ -54,6 +58,8 @@ Personal IPC calculator: users adjust 12 ECOICOP spending category weights to co
 - `src/data/presets.ts` — Weight presets (oficial + perfiles de estilo de vida)
 - `src/data/historicalEvents.ts` — Historical events for chart annotations (COVID, Ukraine, etc.)
 - `src/data/types.ts` — TypeScript interfaces (IPCData, IPCResult, CategoryVariation)
+- `src/data/rubricasTypes.ts` — TypeScript interfaces for detailed rubricas dataset
+- `src/data/ipc-rubricas.json` — Generated detailed rubricas dataset (classes + general reference)
 - `src/components/` — Presentational components (all use shadcn/ui primitives from `ui/`)
 - `src/components/OnboardingQuiz.tsx` — 7-question onboarding wizard to generate personalized weights
 - `src/components/RegionRanking.tsx` — Region ranking by personal IPC (lazy loaded)
@@ -62,6 +68,8 @@ Personal IPC calculator: users adjust 12 ECOICOP spending category weights to co
 - `src/components/CopyLinkButton.tsx` — Copy current URL to clipboard
 - `src/components/ErrorBoundary.tsx` — Global React error boundary
 - `scripts/download-ine-data.mjs` — INE API download with v1/v2 deduplication
+- `scripts/spike-ine-rubricas.mjs` — Coverage inventory by ECOICOP level since 2002
+- `scripts/download-ine-rubricas-data.mjs` — Build rubricas dataset for historical accumulated module
 
 **Path aliases:** `@` → `./src` (configured in both `tsconfig.json` and `vite.config.ts`)
 

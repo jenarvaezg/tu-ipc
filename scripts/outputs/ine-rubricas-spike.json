@@ -1,0 +1,675 @@
+{
+  "generatedAt": "2026-02-21T09:10:58.343Z",
+  "baseMonth": "2002-01",
+  "dateRange": "20020101:20271231",
+  "levelReports": [
+    {
+      "levelId": 762,
+      "levelName": "grupos-ecoicop",
+      "valuesCount": 20,
+      "uniqueCodesCount": 14,
+      "valuesWithParentsCount": 19,
+      "rawSeries": {
+        "totalSeries": 40,
+        "withDataCount": 40,
+        "withBaseMonthCount": 20,
+        "withDataPct": 100,
+        "coverageAtBasePct": 50,
+        "firstMonth": "2001-12",
+        "lastMonth": "2025-12",
+        "pointsStats": {
+          "min": 180,
+          "p25": 181,
+          "median": 181,
+          "p75": 289,
+          "max": 289
+        },
+        "topWithoutBase": [
+          {
+            "code": "IPC292603",
+            "name": "Transporte",
+            "points": 181,
+            "firstMonth": "2010-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC292619",
+            "name": "Servicios de educación",
+            "points": 181,
+            "firstMonth": "2010-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC292631",
+            "name": "Cuidado personal, protección social, y bienes y servicios diversos",
+            "points": 181,
+            "firstMonth": "2010-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC292595",
+            "name": "Muebles, artículos del hogar y artículos para el mantenimiento corriente del hogar",
+            "points": 181,
+            "firstMonth": "2010-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC292607",
+            "name": "Bebidas alcohólicas, tabaco y estupefacientes",
+            "points": 181,
+            "firstMonth": "2010-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC292615",
+            "name": "Actividades recreativas, deporte y cultura",
+            "points": 181,
+            "firstMonth": "2010-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC292623",
+            "name": "Restaurantes y servicios de alojamiento",
+            "points": 181,
+            "firstMonth": "2010-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC292583",
+            "name": "Alimentos y bebidas no alcohólicas",
+            "points": 181,
+            "firstMonth": "2010-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC292579",
+            "name": "Índice general",
+            "points": 181,
+            "firstMonth": "2010-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC292611",
+            "name": "Información y comunicaciones",
+            "points": 181,
+            "firstMonth": "2010-12",
+            "lastMonth": "2025-12"
+          }
+        ]
+      },
+      "dedupedSeries": {
+        "totalSeries": 20,
+        "withDataCount": 20,
+        "withBaseMonthCount": 20,
+        "withDataPct": 100,
+        "coverageAtBasePct": 100,
+        "firstMonth": "2001-12",
+        "lastMonth": "2025-12",
+        "pointsStats": {
+          "min": 288,
+          "p25": 288,
+          "median": 289,
+          "p75": 289,
+          "max": 289
+        },
+        "topWithoutBase": []
+      }
+    },
+    {
+      "levelId": 763,
+      "levelName": "subgrupos-ecoicop",
+      "valuesCount": 71,
+      "uniqueCodesCount": 71,
+      "valuesWithParentsCount": 71,
+      "rawSeries": {
+        "totalSeries": 71,
+        "withDataCount": 70,
+        "withBaseMonthCount": 57,
+        "withDataPct": 98.6,
+        "coverageAtBasePct": 81.4,
+        "firstMonth": "2001-12",
+        "lastMonth": "2025-12",
+        "pointsStats": {
+          "min": 1,
+          "p25": 288,
+          "median": 289,
+          "p75": 289,
+          "max": 289
+        },
+        "topWithoutBase": [
+          {
+            "code": "IPC290931",
+            "name": "Servicios de información y comunicaciones",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC290943",
+            "name": "Productos de jardinería y mascotas",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC251999",
+            "name": "Equipos de telefonía y fax",
+            "points": 228,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-11"
+          },
+          {
+            "code": "IPC252003",
+            "name": "Servicios de telefonía y fax",
+            "points": 228,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-11"
+          },
+          {
+            "code": "IPC206503",
+            "name": "Otros grandes bienes duraderos para ocio y cultura",
+            "points": 180,
+            "firstMonth": "2006-12",
+            "lastMonth": "2021-11"
+          },
+          {
+            "code": "IPC290959",
+            "name": "Educación Infantil y Primaria",
+            "points": 109,
+            "firstMonth": "2016-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC290963",
+            "name": "Educación Secundaria",
+            "points": 109,
+            "firstMonth": "2016-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC290875",
+            "name": "Protección social",
+            "points": 109,
+            "firstMonth": "2016-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC252031",
+            "name": "Enseñanza Infantil y Primaria",
+            "points": 108,
+            "firstMonth": "2016-12",
+            "lastMonth": "2025-11"
+          },
+          {
+            "code": "IPC252035",
+            "name": "Enseñanza Secundaria",
+            "points": 108,
+            "firstMonth": "2016-12",
+            "lastMonth": "2025-11"
+          }
+        ]
+      },
+      "dedupedSeries": {
+        "totalSeries": 71,
+        "withDataCount": 70,
+        "withBaseMonthCount": 57,
+        "withDataPct": 98.6,
+        "coverageAtBasePct": 81.4,
+        "firstMonth": "2001-12",
+        "lastMonth": "2025-12",
+        "pointsStats": {
+          "min": 1,
+          "p25": 288,
+          "median": 289,
+          "p75": 289,
+          "max": 289
+        },
+        "topWithoutBase": [
+          {
+            "code": "IPC290931",
+            "name": "Servicios de información y comunicaciones",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC290943",
+            "name": "Productos de jardinería y mascotas",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC251999",
+            "name": "Equipos de telefonía y fax",
+            "points": 228,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-11"
+          },
+          {
+            "code": "IPC252003",
+            "name": "Servicios de telefonía y fax",
+            "points": 228,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-11"
+          },
+          {
+            "code": "IPC206503",
+            "name": "Otros grandes bienes duraderos para ocio y cultura",
+            "points": 180,
+            "firstMonth": "2006-12",
+            "lastMonth": "2021-11"
+          },
+          {
+            "code": "IPC290959",
+            "name": "Educación Infantil y Primaria",
+            "points": 109,
+            "firstMonth": "2016-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC290963",
+            "name": "Educación Secundaria",
+            "points": 109,
+            "firstMonth": "2016-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC290875",
+            "name": "Protección social",
+            "points": 109,
+            "firstMonth": "2016-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC252031",
+            "name": "Enseñanza Infantil y Primaria",
+            "points": 108,
+            "firstMonth": "2016-12",
+            "lastMonth": "2025-11"
+          },
+          {
+            "code": "IPC252035",
+            "name": "Enseñanza Secundaria",
+            "points": 108,
+            "firstMonth": "2016-12",
+            "lastMonth": "2025-11"
+          }
+        ]
+      }
+    },
+    {
+      "levelId": 764,
+      "levelName": "clases-ecoicop",
+      "valuesCount": 188,
+      "uniqueCodesCount": 188,
+      "valuesWithParentsCount": 188,
+      "rawSeries": {
+        "totalSeries": 188,
+        "withDataCount": 178,
+        "withBaseMonthCount": 113,
+        "withDataPct": 94.7,
+        "coverageAtBasePct": 63.5,
+        "firstMonth": "2001-12",
+        "lastMonth": "2025-12",
+        "pointsStats": {
+          "min": 1,
+          "p25": 109,
+          "median": 288,
+          "p75": 289,
+          "max": 289
+        },
+        "topWithoutBase": [
+          {
+            "code": "IPC291207",
+            "name": "Otros servicios relacionados con la vivienda",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291323",
+            "name": "Productos de jardinería, plantas y flores",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291203",
+            "name": "Recogida de aguas residuales",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291379",
+            "name": "Restaurantes, cafés, establecimientos de comida rápida y similares",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291199",
+            "name": "Recogida de basuras",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291383",
+            "name": "Comedores, cafeterías y refectorios",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291287",
+            "name": "Equipos de telefonía móvil",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC252438",
+            "name": "Restauración",
+            "points": 228,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-11"
+          },
+          {
+            "code": "IPC252330",
+            "name": "Servicios de telefonía y fax",
+            "points": 228,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-11"
+          },
+          {
+            "code": "IPC252326",
+            "name": "Equipos de telefonía y fax",
+            "points": 228,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-11"
+          }
+        ]
+      },
+      "dedupedSeries": {
+        "totalSeries": 188,
+        "withDataCount": 178,
+        "withBaseMonthCount": 113,
+        "withDataPct": 94.7,
+        "coverageAtBasePct": 63.5,
+        "firstMonth": "2001-12",
+        "lastMonth": "2025-12",
+        "pointsStats": {
+          "min": 1,
+          "p25": 109,
+          "median": 288,
+          "p75": 289,
+          "max": 289
+        },
+        "topWithoutBase": [
+          {
+            "code": "IPC291207",
+            "name": "Otros servicios relacionados con la vivienda",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291323",
+            "name": "Productos de jardinería, plantas y flores",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291203",
+            "name": "Recogida de aguas residuales",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291379",
+            "name": "Restaurantes, cafés, establecimientos de comida rápida y similares",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291199",
+            "name": "Recogida de basuras",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291383",
+            "name": "Comedores, cafeterías y refectorios",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291287",
+            "name": "Equipos de telefonía móvil",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC252438",
+            "name": "Restauración",
+            "points": 228,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-11"
+          },
+          {
+            "code": "IPC252330",
+            "name": "Servicios de telefonía y fax",
+            "points": 228,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-11"
+          },
+          {
+            "code": "IPC252326",
+            "name": "Equipos de telefonía y fax",
+            "points": 228,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-11"
+          }
+        ]
+      }
+    },
+    {
+      "levelId": 765,
+      "levelName": "subclases-ecoicop",
+      "valuesCount": 454,
+      "uniqueCodesCount": 454,
+      "valuesWithParentsCount": 454,
+      "rawSeries": {
+        "totalSeries": 908,
+        "withDataCount": 764,
+        "withBaseMonthCount": 101,
+        "withDataPct": 84.1,
+        "coverageAtBasePct": 13.2,
+        "firstMonth": "2001-12",
+        "lastMonth": "2025-12",
+        "pointsStats": {
+          "min": 1,
+          "p25": 108,
+          "median": 109,
+          "p75": 180,
+          "max": 289
+        },
+        "topWithoutBase": [
+          {
+            "code": "IPC291443",
+            "name": "Alimentos para bebé",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291839",
+            "name": "Gastos comunitarios en concepto de mantenimiento",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC292099",
+            "name": "Libros educativos y libros de texto",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291831",
+            "name": "Recogida de basuras",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291551",
+            "name": "Equipos de telefonía móvil",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291623",
+            "name": "Pescado, vivo, fresco, refrigerado o congelado",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291835",
+            "name": "Recogida de aguas residuales a través de sistemas de alcantarillado",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC292151",
+            "name": "Comedores y cafeterías de universidades, escuelas y guarderías",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC253022",
+            "name": "Gastos comunitarios",
+            "points": 228,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-11"
+          },
+          {
+            "code": "IPC253353",
+            "name": "Libros de texto",
+            "points": 228,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-11"
+          }
+        ]
+      },
+      "dedupedSeries": {
+        "totalSeries": 453,
+        "withDataCount": 381,
+        "withBaseMonthCount": 100,
+        "withDataPct": 84.1,
+        "coverageAtBasePct": 26.2,
+        "firstMonth": "2001-12",
+        "lastMonth": "2025-12",
+        "pointsStats": {
+          "min": 1,
+          "p25": 108,
+          "median": 109,
+          "p75": 288,
+          "max": 289
+        },
+        "topWithoutBase": [
+          {
+            "code": "IPC291443",
+            "name": "Alimentos para bebé",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291623",
+            "name": "Pescado, vivo, fresco, refrigerado o congelado",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291831",
+            "name": "Recogida de basuras",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291839",
+            "name": "Gastos comunitarios en concepto de mantenimiento",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC292099",
+            "name": "Libros educativos y libros de texto",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291551",
+            "name": "Equipos de telefonía móvil",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC292151",
+            "name": "Comedores y cafeterías de universidades, escuelas y guarderías",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC291835",
+            "name": "Recogida de aguas residuales a través de sistemas de alcantarillado",
+            "points": 229,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-12"
+          },
+          {
+            "code": "IPC253022",
+            "name": "Gastos comunitarios",
+            "points": 228,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-11"
+          },
+          {
+            "code": "IPC253353",
+            "name": "Libros de texto",
+            "points": 228,
+            "firstMonth": "2006-12",
+            "lastMonth": "2025-11"
+          }
+        ]
+      }
+    }
+  ],
+  "recommendation": {
+    "strategy": "max-depth-with-min-coverage",
+    "minCoveragePct": 60,
+    "recommendedLevelId": 764,
+    "recommendedLevelName": "clases-ecoicop",
+    "rationale": "Se selecciona el nivel más desagregado que mantiene cobertura histórica suficiente en 2002-01 tras deduplicar series."
+  }
+}

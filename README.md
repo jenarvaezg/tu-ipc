@@ -35,7 +35,11 @@ npm run lint         # TypeScript check sin emitir archivos
 npm test             # Vitest
 npm run test:watch   # Vitest en modo watch
 npm run test:coverage # Vitest con cobertura
+npm run test:e2e     # Playwright E2E (build + tests)
 npm run download-data  # Descarga datos frescos de la API del INE
+npm run download-rubricas-data # Genera dataset de rúbricas (clases ECOICOP) para módulo histórico
+npm run spike:rubricas # Spike de cobertura ECOICOP 2002+ (usa -- --input-dir=/tmp para modo offline)
+npm run qa:screenshots # Capturas de QA visual con Playwright
 ```
 
 ## Datos
@@ -51,6 +55,10 @@ npm run download-data   # Actualizar tras la publicacion mensual del INE (~dia 1
 ## Deploy
 
 Push a `main` → GitHub Actions ejecuta tests + build → GitHub Pages en [tu-ipc.es](https://tu-ipc.es).
+
+## Roadmap
+
+El plan de implementación para el módulo de rúbricas y acumulado histórico está en `ROADMAP.md`.
 
 ## Licencia
 

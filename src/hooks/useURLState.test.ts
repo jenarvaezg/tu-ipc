@@ -74,6 +74,12 @@ describe('parseURLState', () => {
     expect(state.activeTab).toBe('desglose')
   })
 
+  it('parses rubricas tab', () => {
+    setSearch('?t=rubricas')
+    const state = parseURLState()
+    expect(state.activeTab).toBe('rubricas')
+  })
+
   it('ignores invalid tab', () => {
     setSearch('?t=invalid')
     const state = parseURLState()
@@ -101,6 +107,15 @@ describe('parseURLState', () => {
     expect(state.activeTab).toBe('sueldo')
     expect(state.comparisonIds).toEqual(['joven'])
     expect(state.comparisonRegions).toEqual(['cataluna'])
+  })
+
+  it('parses rubricas explorer params', () => {
+    setSearch('?t=rubricas&rs=764:304149,764:304150&rf=2004-01&re=2024-12')
+    const state = parseURLState()
+    expect(state.activeTab).toBe('rubricas')
+    expect(state.rubricasSeriesIds).toEqual(['764:304149', '764:304150'])
+    expect(state.rubricasFrom).toBe('2004-01')
+    expect(state.rubricasTo).toBe('2024-12')
   })
 })
 
@@ -193,5 +208,21 @@ describe('syncToURL', () => {
       comparisonRegions: [],
     })
     expect(lastURL).toContain('embed=1')
+  })
+
+  it('preserves rubricas query params when syncing calculator state', () => {
+    setSearch('?t=rubricas&rs=764:304149%2C764:304150&rf=2004-01&re=2024-12')
+    syncToURL({
+      weights: { ...OFFICIAL_WEIGHTS },
+      startMonth: '2024-01',
+      endMonth: '2025-01',
+      region: 'nacional',
+      activeTab: 'desglose',
+      comparisonIds: [],
+      comparisonRegions: [],
+    })
+    expect(lastURL).toContain('rs=764%3A304149%2C764%3A304150')
+    expect(lastURL).toContain('rf=2004-01')
+    expect(lastURL).toContain('re=2024-12')
   })
 })

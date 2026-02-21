@@ -10,3 +10,5 @@ dist
 *.local
 tsconfig.tsbuildinfo
 prompt.md
+test-results
+playwright-report

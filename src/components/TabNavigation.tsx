@@ -11,6 +11,7 @@ interface TabNavigationProps {
 
 const TABS = [
   { id: 'evolucion', label: 'Evolución' },
+  { id: 'rubricas', label: 'Rúbricas' },
   { id: 'desglose', label: 'Desglose' },
   { id: 'sueldo', label: 'Tu Sueldo' },
   { id: 'regiones', label: 'Regiones' },
@@ -22,8 +23,10 @@ export default function TabNavigation({
   mobileSticky = false,
   showDesgloseBadge = false,
 }: TabNavigationProps) {
+  const mobileGridClass = TABS.length === 5 ? 'grid grid-cols-5 gap-2' : 'grid grid-cols-4 gap-2'
+
   const renderTabs = (mobile: boolean) => (
-    <div className={cn('flex gap-2', mobile ? 'grid grid-cols-4 gap-2' : 'flex-wrap justify-start')}>
+    <div className={cn('flex gap-2', mobile ? mobileGridClass : 'flex-wrap justify-start')}>
       {TABS.map((tab) => {
         const isActive = activeTab === tab.id
         return (
