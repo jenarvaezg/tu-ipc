@@ -110,12 +110,10 @@ describe('parseURLState', () => {
   })
 
   it('parses rubricas explorer params', () => {
-    setSearch('?t=rubricas&rs=764:304149,764:304150&rf=2004-01&re=2024-12')
+    setSearch('?t=rubricas&rs=764:304149,764:304150')
     const state = parseURLState()
     expect(state.activeTab).toBe('rubricas')
     expect(state.rubricasSeriesIds).toEqual(['764:304149', '764:304150'])
-    expect(state.rubricasFrom).toBe('2004-01')
-    expect(state.rubricasTo).toBe('2024-12')
   })
 })
 
@@ -222,7 +220,7 @@ describe('syncToURL', () => {
       comparisonRegions: [],
     })
     expect(lastURL).toContain('rs=764%3A304149%2C764%3A304150')
-    expect(lastURL).toContain('rf=2004-01')
-    expect(lastURL).toContain('re=2024-12')
+    expect(lastURL).not.toContain('rf=')
+    expect(lastURL).not.toContain('re=')
   })
 })

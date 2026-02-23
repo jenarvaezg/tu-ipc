@@ -364,7 +364,11 @@ export default function App() {
       return (
         <main className="max-w-6xl mx-auto px-4 py-4">
           <Suspense fallback={<LazyFallback />}>
-            <RubricasExplorer />
+            <RubricasExplorer
+              startMonth={startMonth}
+              endMonth={endMonth}
+              userWeights={weights}
+            />
           </Suspense>
           <p className="text-xs text-muted-foreground text-center mt-2">
             Datos del INE ·{" "}
@@ -528,7 +532,11 @@ export default function App() {
           {activeTab === "rubricas" && (
             <div role="tabpanel" id="rubricas-panel">
               <Suspense fallback={<LazyFallback />}>
-                <RubricasExplorer />
+                <RubricasExplorer
+                  startMonth={startMonth}
+                  endMonth={endMonth}
+                  userWeights={weights}
+                />
               </Suspense>
             </div>
           )}

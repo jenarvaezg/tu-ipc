@@ -14,13 +14,6 @@ import rubricasDataUrl from "@/data/ipc-rubricas.json?url";
 import type { RubricasData, RubricaSeries } from "@/data/rubricasTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { formatMonth } from "@/utils/formatMonth";
 import {
   buildAccumulatedSeries,
@@ -55,24 +48,14 @@ const MONTH_NAMES_SHORT = [
 
 interface RubricasURLState {
   selectedSeriesIds: string[];
-  fromMonth?: string;
-  toMonth?: string;
-}
-
-function isMonthLabel(value: string | null | undefined): value is string {
-  return Boolean(value && /^\d{4}-\d{2}$/.test(value));
 }
 
 function parseRubricasURLState(): RubricasURLState {
   const params = new URLSearchParams(window.location.search);
   const rs = params.get("rs");
-  const rf = params.get("rf");
-  const re = params.get("re");
 
   return {
     selectedSeriesIds: rs ? rs.split(",").filter(Boolean) : [],
-    fromMonth: isMonthLabel(rf) ? rf : undefined,
-    toMonth: isMonthLabel(re) ? re : undefined,
   };
 }
 
@@ -93,10 +76,22 @@ function colorFromSeriesId(seriesId: string): string {
   return COLOR_PALETTE[Math.abs(hash) % COLOR_PALETTE.length];
 }
 
+function categoryCodeFromRubricaCode(rubricaCode: string): string | null {
+  const match = rubricaCode.match(/^(\d{2})/);
+  if (!match) return null;
+
+  // ECOICOP v2 split uses 13.x for part of "Otros bienes y servicios".
+  // User weights keep the legacy 12 buckets, so we fold 13 -> 12.
+  if (match[1] === "13") return "12";
+
+  return match[1];
+}
+
 function getSuggestedSelection(
   series: RubricaSeries[],
   startMonth: string,
   endMonth: string,
+  userWeights: Record<string, number>,
 ): string[] {
   if (!startMonth || !endMonth || startMonth > endMonth) {
     return [];
@@ -105,6 +100,7 @@ function getSuggestedSelection(
   const ranked = series
     .map((item) => ({
       id: item.id,
+      categoryCode: categoryCodeFromRubricaCode(item.codigo),
       endAccumulated: computeGeneralBenchmark(item.points, startMonth, endMonth),
     }))
     .filter((item) => item.endAccumulated != null)
@@ -113,15 +109,48 @@ function getSuggestedSelection(
         Math.abs(b.endAccumulated ?? 0) - Math.abs(a.endAccumulated ?? 0),
     );
 
-  return ranked.slice(0, 4).map((item) => item.id);
+  const topWeightedCategoryCodes = Object.entries(userWeights)
+    .filter(([, weight]) => Number.isFinite(weight) && weight > 0)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2)
+    .map(([code]) => code);
+
+  const selectedIds: string[] = [];
+
+  for (const categoryCode of topWeightedCategoryCodes) {
+    const bestInCategory = ranked.find(
+      (item) =>
+        item.categoryCode === categoryCode && !selectedIds.includes(item.id),
+    );
+    if (bestInCategory) {
+      selectedIds.push(bestInCategory.id);
+    }
+  }
+
+  for (const item of ranked) {
+    if (selectedIds.length >= 4) break;
+    if (!selectedIds.includes(item.id)) {
+      selectedIds.push(item.id);
+    }
+  }
+
+  return selectedIds;
 }
 
-export default function RubricasExplorer() {
+interface RubricasExplorerProps {
+  startMonth: string;
+  endMonth: string;
+  userWeights: Record<string, number>;
+}
+
+export default function RubricasExplorer({
+  startMonth,
+  endMonth,
+  userWeights,
+}: RubricasExplorerProps) {
   const [rubricasData, setRubricasData] = useState<RubricasData | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [fromMonth, setFromMonth] = useState("");
-  const [toMonth, setToMonth] = useState("");
   const [selectedSeriesIds, setSelectedSeriesIds] = useState<string[]>([]);
   const [selectionNotice, setSelectionNotice] = useState<string>("");
   const [isWideViewport, setIsWideViewport] = useState(
@@ -174,7 +203,19 @@ export default function RubricasExplorer() {
         : [],
     [baseMonth, rubricasData],
   );
-  const defaultEndMonth = timeline[timeline.length - 1] ?? "";
+  const [periodFromMonth, periodToMonth] = useMemo<[string, string]>(() => {
+    if (timeline.length === 0) return ["", ""];
+
+    const fallbackFrom = timeline[Math.max(0, timeline.length - 13)] ?? timeline[0];
+    const fromCandidate = timeline.includes(startMonth) ? startMonth : fallbackFrom;
+    const toCandidate = timeline.includes(endMonth)
+      ? endMonth
+      : (timeline[timeline.length - 1] ?? fallbackFrom);
+
+    if (!fromCandidate || !toCandidate) return ["", ""];
+    if (fromCandidate <= toCandidate) return [fromCandidate, toCandidate];
+    return [toCandidate, fromCandidate];
+  }, [endMonth, startMonth, timeline]);
 
   const classSeries = useMemo(
     () =>
@@ -221,33 +262,33 @@ export default function RubricasExplorer() {
     const urlState = parseRubricasURLState();
     const validIds = new Set(classSeries.map((item) => item.id));
 
-    const nextFrom =
-      urlState.fromMonth && timeline.includes(urlState.fromMonth)
-        ? urlState.fromMonth
-        : baseMonth;
-    const rawTo =
-      urlState.toMonth && timeline.includes(urlState.toMonth)
-        ? urlState.toMonth
-        : defaultEndMonth;
-    const nextTo = rawTo < nextFrom ? nextFrom : rawTo;
-
     const parsedSelection = urlState.selectedSeriesIds
       .filter((id) => validIds.has(id))
       .slice(0, MAX_SELECTED_SERIES);
 
-    setFromMonth(nextFrom);
-    setToMonth(nextTo);
     setSelectedSeriesIds(
       parsedSelection.length > 0
         ? parsedSelection
-        : getSuggestedSelection(classSeries, nextFrom, nextTo),
+        : getSuggestedSelection(
+            classSeries,
+            periodFromMonth,
+            periodToMonth,
+            userWeights,
+          ),
     );
 
     initializedRef.current = true;
-  }, [baseMonth, classSeries, defaultEndMonth, rubricasData, timeline]);
+  }, [
+    classSeries,
+    periodFromMonth,
+    periodToMonth,
+    rubricasData,
+    timeline,
+    userWeights,
+  ]);
 
   useEffect(() => {
-    if (!rubricasData || !fromMonth || !toMonth || !defaultEndMonth) return;
+    if (!rubricasData) return;
 
     const params = new URLSearchParams(window.location.search);
 
@@ -257,36 +298,15 @@ export default function RubricasExplorer() {
       params.delete("rs");
     }
 
-    if (fromMonth !== baseMonth) {
-      params.set("rf", fromMonth);
-    } else {
-      params.delete("rf");
-    }
-
-    if (toMonth !== defaultEndMonth) {
-      params.set("re", toMonth);
-    } else {
-      params.delete("re");
-    }
-
     const search = params.toString();
     const nextURL = search
       ? `${window.location.pathname}?${search}`
       : window.location.pathname;
     window.history.replaceState(null, "", nextURL);
-  }, [
-    baseMonth,
-    defaultEndMonth,
-    fromMonth,
-    rubricasData,
-    selectedSeriesIds,
-    toMonth,
-  ]);
+  }, [rubricasData, selectedSeriesIds]);
 
   const searchId = useId();
   const listId = useId();
-  const fromMonthId = useId();
-  const toMonthId = useId();
   const selectionStatusId = useId();
 
   const filteredSeries = useMemo(() => {
@@ -331,8 +351,11 @@ export default function RubricasExplorer() {
   }, [classSeries, groupCatalog, searchQuery, subgroupCatalog]);
 
   const visibleMonths = useMemo(
-    () => timeline.filter((month) => month >= fromMonth && month <= toMonth),
-    [fromMonth, timeline, toMonth],
+    () =>
+      timeline.filter(
+        (month) => month >= periodFromMonth && month <= periodToMonth,
+      ),
+    [periodFromMonth, periodToMonth, timeline],
   );
 
   const selectedSeries = useMemo(
@@ -352,20 +375,20 @@ export default function RubricasExplorer() {
       dataKey: dataKeyForSeries(item.id),
       accumulated: buildAccumulatedSeries(
         item.points,
-        fromMonth,
+        periodFromMonth,
         visibleMonths,
       ),
     }));
-  }, [fromMonth, selectedSeries, visibleMonths]);
+  }, [periodFromMonth, selectedSeries, visibleMonths]);
 
   const benchmarkValue = useMemo(() => {
     if (!generalSeries || visibleMonths.length === 0) return null;
     return computeGeneralBenchmark(
       generalSeries.points,
-      fromMonth,
+      periodFromMonth,
       visibleMonths[visibleMonths.length - 1],
     );
-  }, [fromMonth, generalSeries, visibleMonths]);
+  }, [generalSeries, periodFromMonth, visibleMonths]);
 
   const chartData = useMemo(() => {
     return visibleMonths.map((month) => {
@@ -449,20 +472,6 @@ export default function RubricasExplorer() {
     });
   };
 
-  const handleFromMonthChange = (month: string) => {
-    setFromMonth(month);
-    if (toMonth && month > toMonth) {
-      setToMonth(month);
-    }
-  };
-
-  const handleToMonthChange = (month: string) => {
-    setToMonth(month);
-    if (fromMonth && month < fromMonth) {
-      setFromMonth(month);
-    }
-  };
-
   const clearSelection = () => {
     setSelectionNotice("");
     setSelectedSeriesIds([]);
@@ -471,7 +480,12 @@ export default function RubricasExplorer() {
   const resetSelection = () => {
     setSelectionNotice("");
     setSelectedSeriesIds(
-      getSuggestedSelection(classSeries, fromMonth, toMonth || defaultEndMonth),
+      getSuggestedSelection(
+        classSeries,
+        periodFromMonth,
+        periodToMonth,
+        userWeights,
+      ),
     );
   };
 
@@ -485,7 +499,7 @@ export default function RubricasExplorer() {
     );
   }
 
-  if (!rubricasData || !fromMonth || !toMonth) {
+  if (!rubricasData || !periodFromMonth || !periodToMonth) {
     return (
       <Card>
         <CardContent className="py-8 text-center text-sm text-muted-foreground">
@@ -503,7 +517,7 @@ export default function RubricasExplorer() {
             Inflación acumulada por rúbricas en el periodo seleccionado
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {formatMonth(fromMonth)} – {formatMonth(toMonth)} ·{" "}
+            {formatMonth(periodFromMonth)} – {formatMonth(periodToMonth)} ·{" "}
             Selecciona hasta {MAX_SELECTED_SERIES} clases ECOICOP y compáralas
             contra la referencia del IPC general.
           </p>
@@ -542,49 +556,6 @@ export default function RubricasExplorer() {
                 aria-describedby={selectionStatusId}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <label
-                  htmlFor={fromMonthId}
-                  className="text-xs font-medium text-muted-foreground"
-                >
-                  Desde
-                </label>
-                <Select value={fromMonth} onValueChange={handleFromMonthChange}>
-                  <SelectTrigger id={fromMonthId} className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timeline.map((month) => (
-                      <SelectItem key={`from-${month}`} value={month}>
-                        {formatMonth(month)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1">
-                <label
-                  htmlFor={toMonthId}
-                  className="text-xs font-medium text-muted-foreground"
-                >
-                  Hasta
-                </label>
-                <Select value={toMonth} onValueChange={handleToMonthChange}>
-                  <SelectTrigger id={toMonthId} className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {timeline.map((month) => (
-                      <SelectItem key={`to-${month}`} value={month}>
-                        {formatMonth(month)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
 
             <div className="flex flex-wrap gap-2">
@@ -647,11 +618,11 @@ export default function RubricasExplorer() {
         <Card className="min-w-0">
           <CardHeader>
             <CardTitle className="text-base">
-              Evolución acumulada (base {formatMonth(fromMonth)} = 0%)
+              Evolución acumulada (base {formatMonth(periodFromMonth)} = 0%)
             </CardTitle>
             <p className="text-xs text-muted-foreground">
               Benchmark horizontal (rojo): IPC general acumulado del periodo{" "}
-              {formatMonth(fromMonth)} – {formatMonth(toMonth)}
+              {formatMonth(periodFromMonth)} – {formatMonth(periodToMonth)}
               {benchmarkValue != null ? ` · ${benchmarkValue.toFixed(1)}%` : ""}
             </p>
           </CardHeader>
@@ -793,7 +764,7 @@ export default function RubricasExplorer() {
             {latestSeriesValues.length > 0 && (
               <div className="rounded-md border border-border bg-muted/20 p-3">
                 <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Valor acumulado en {formatMonth(toMonth)}
+                  Valor acumulado en {formatMonth(periodToMonth)}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {latestSeriesValues.map((item) => (
@@ -824,7 +795,7 @@ export default function RubricasExplorer() {
 
             <p className="text-xs text-muted-foreground">
               Fuente: INE (IPC, índices mensuales ECOICOP). Base fija para
-              acumulado en este gráfico: {formatMonth(fromMonth)}.
+              acumulado en este gráfico: {formatMonth(periodFromMonth)}.
             </p>
           </CardContent>
         </Card>

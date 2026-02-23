@@ -10,8 +10,6 @@ interface URLState {
   comparisonIds?: string[]
   comparisonRegions?: string[]
   rubricasSeriesIds?: string[]
-  rubricasFrom?: string
-  rubricasTo?: string
   theme?: string
 }
 
@@ -58,16 +56,6 @@ export function parseURLState(): URLState {
   const rs = params.get('rs')
   if (rs) {
     result.rubricasSeriesIds = rs.split(',').filter(Boolean)
-  }
-
-  const rf = params.get('rf')
-  if (rf && /^\d{4}-\d{2}$/.test(rf)) {
-    result.rubricasFrom = rf
-  }
-
-  const re = params.get('re')
-  if (re && /^\d{4}-\d{2}$/.test(re)) {
-    result.rubricasTo = re
   }
 
   // Parse comparisons: c=joven,pensionista-propietario
@@ -145,11 +133,7 @@ export function syncToURL(state: {
 
   // Preserve rubricas explorer state while syncing calculator params.
   const rs = current.get('rs')
-  const rf = current.get('rf')
-  const re = current.get('re')
   if (rs) params.set('rs', rs)
-  if (rf) params.set('rf', rf)
-  if (re) params.set('re', re)
 
   const search = params.toString()
   const url = search ? `${window.location.pathname}?${search}` : window.location.pathname
