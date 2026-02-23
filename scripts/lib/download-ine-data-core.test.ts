@@ -12,7 +12,20 @@ describe('download-ine-data core', () => {
     expect(parseSeriesData(undefined)).toEqual({})
   })
 
-  it('parseSeriesData normalizes months in UTC', () => {
+  it('parseSeriesData prioritizes Anyo/FK_Periodo to avoid month drift', () => {
+    const parsed = parseSeriesData([
+      // INE monthly points can be published with previous-month UTC timestamps.
+      { Fecha: Date.UTC(2025, 11, 31, 23, 0, 0), Anyo: 2026, FK_Periodo: 1, Valor: 101.2 },
+      { Fecha: Date.UTC(2025, 10, 30, 23, 0, 0), Anyo: 2025, FK_Periodo: 12, Valor: 102.3 },
+    ])
+
+    expect(parsed).toEqual({
+      '2026-01': 101.2,
+      '2025-12': 102.3,
+    })
+  })
+
+  it('parseSeriesData falls back to UTC timestamp when Anyo/FK_Periodo is missing', () => {
     const parsed = parseSeriesData([
       { Fecha: Date.UTC(2024, 0, 31, 23, 0, 0), Valor: 101.2 },
       { Fecha: Date.UTC(2024, 1, 1, 0, 0, 0), Valor: 102.3 },

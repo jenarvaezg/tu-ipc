@@ -38,7 +38,7 @@ Personal IPC calculator: users adjust 12 ECOICOP spending category weights to co
 - **Static data bundle** — INE API lacks CORS headers, so data is pre-downloaded and shipped as JSON
 - **ECOICOP v1 vs v2** — INE publishes overlapping series with incompatible bases. The download script groups series by category and picks the longest (always v1, base 2021=100). Never mix v1/v2 data.
 - **Weight system** — Weights are normalized percentages that sum to 100. Moving one slider redistributes the delta proportionally among unlocked categories (see `src/utils/weightRedistribution.ts`). Locked categories hold fixed values.
-- **INE timestamps** — Unix milliseconds; must use `getUTCFullYear()`/`getUTCMonth()` to avoid timezone shifts
+- **INE month labeling** — Prefer `Anyo` + `FK_Periodo` from INE rows when available. `Fecha` can be in previous-month UTC boundary (e.g. enero comes as Dec 31 23:00Z), so use `getUTCFullYear()`/`getUTCMonth()` only as fallback.
 - **ErrorBoundary** — Global error boundary in `main.tsx` catches render errors and shows a Spanish fallback UI
 - **Lazy loading** — EvolutionChart, Methodology, SalaryCalculator, RegionRanking use `React.lazy()` with `<Suspense>` for code splitting
 - **Embed mode** — `?embed=1` URL param renders a minimal view with only KPIs and chart (no header, tabs, or controls)

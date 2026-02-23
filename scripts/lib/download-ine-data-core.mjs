@@ -12,7 +12,24 @@ export function matchCategory(nombre, map) {
 export function parseSeriesData(dataArray) {
   const data = {}
   for (const d of dataArray || []) {
-    const date = new Date(d.Fecha)
+    const yearFromFields = Number(d.Anyo)
+    const periodFromFields = Number(d.FK_Periodo)
+
+    if (
+      Number.isInteger(yearFromFields) &&
+      Number.isInteger(periodFromFields) &&
+      periodFromFields >= 1 &&
+      periodFromFields <= 12
+    ) {
+      const month = String(periodFromFields).padStart(2, '0')
+      data[`${yearFromFields}-${month}`] = d.Valor
+      continue
+    }
+
+    const timestamp = Number(d.Fecha)
+    if (!Number.isFinite(timestamp)) continue
+
+    const date = new Date(timestamp)
     const year = date.getUTCFullYear()
     const month = String(date.getUTCMonth() + 1).padStart(2, '0')
     data[`${year}-${month}`] = d.Valor
