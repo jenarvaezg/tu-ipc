@@ -1,6 +1,13 @@
 import { mkdirSync, writeFileSync } from 'fs'
 import { readFile } from 'fs/promises'
 import { execFileSync } from 'child_process'
+import {
+  buildSeriesPayload,
+  buildValueIndexes,
+  computeMonths,
+  dedupeByRubricaName,
+  normalizeSeries,
+} from './lib/download-ine-rubricas-core.mjs'
 
 const BASE = 'https://servicios.ine.es/wstempus/js/ES'
 const DATE_RANGE = '20020101:20271231'
@@ -18,85 +25,6 @@ const LEVEL_BY_VARIABLE = {
   764: 'clase',
 }
 
-function monthLabel(timestamp) {
-  const date = new Date(timestamp)
-  const year = date.getUTCFullYear()
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
-  return `${year}-${month}`
-}
-
-function cleanSeriesName(value = '') {
-  return value.replace(/\.\s*$/, '').trim()
-}
-
-function extractRubricaName(seriesName) {
-  const parts = cleanSeriesName(seriesName)
-    .split('.')
-    .map(part => part.trim())
-    .filter(Boolean)
-
-  if (parts.length >= 2) return parts[1]
-  return cleanSeriesName(seriesName)
-}
-
-function normalizeForMatch(value = '') {
-  return value
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/n\.?c\.?o\.?p\.?/g, 'n')
-    .replace(/[^a-z0-9 ]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function normalizeSeries(rawSeries) {
-  return rawSeries.map(item => {
-    const points = (item.Data || [])
-      .map(point => ({
-        month: monthLabel(point.Fecha),
-        value: point.Valor,
-      }))
-      .sort((a, b) => a.month.localeCompare(b.month))
-
-    const firstMonth = points[0]?.month ?? ''
-    const lastMonth = points[points.length - 1]?.month ?? ''
-    const hasBaseMonth = points.some(point => point.month === BASE_MONTH)
-
-    return {
-      ineSeriesCode: item.COD || '',
-      rubricaName: extractRubricaName(item.Nombre || ''),
-      points,
-      firstMonth,
-      lastMonth,
-      hasBaseMonth,
-    }
-  })
-}
-
-function dedupeByRubricaName(series) {
-  const bestByName = new Map()
-
-  for (const item of series) {
-    const key = item.rubricaName.toLowerCase()
-    const existing = bestByName.get(key)
-
-    if (!existing) {
-      bestByName.set(key, item)
-      continue
-    }
-
-    const hasMorePoints = item.points.length > existing.points.length
-    const samePointsButMoreRecent =
-      item.points.length === existing.points.length && item.lastMonth > existing.lastMonth
-
-    if (hasMorePoints || samePointsButMoreRecent) {
-      bestByName.set(key, item)
-    }
-  }
-
-  return [...bestByName.values()]
-}
 
 async function fetchJSON(url, label) {
   console.log(`  ${label}`)
@@ -146,62 +74,6 @@ function makeCatalogNode(value) {
   }
 }
 
-function buildValueIndexes(values) {
-  const exact = new Map(values.map(value => [(value.Nombre || '').toLowerCase(), value]))
-  const normalized = new Map()
-
-  for (const value of values) {
-    const key = normalizeForMatch(value.Nombre || '')
-    if (!key) continue
-    if (!normalized.has(key)) {
-      normalized.set(key, value)
-      continue
-    }
-    normalized.set(key, null)
-  }
-
-  return { exact, normalized }
-}
-
-function resolveValueByName(name, indexes) {
-  const exactMatch = indexes.exact.get(name.toLowerCase())
-  if (exactMatch) return exactMatch
-
-  const normalizedMatch = indexes.normalized.get(normalizeForMatch(name))
-  if (normalizedMatch) return normalizedMatch
-
-  return null
-}
-
-function buildSeriesPayload(series, valueIndexes, variableId, level) {
-  const missing = []
-  const payload = []
-
-  for (const item of series) {
-    const value = resolveValueByName(item.rubricaName, valueIndexes)
-    if (!value) {
-      missing.push(item.rubricaName)
-      continue
-    }
-
-    payload.push({
-      id: `${variableId}:${value.Id}`,
-      ineSeriesCode: item.ineSeriesCode,
-      variableId,
-      level,
-      rubricaId: value.Id,
-      parentRubricaId: (value.FK_JerarquiaPadres || [])[0],
-      codigo: value.Codigo || '',
-      nombre: item.rubricaName,
-      firstMonth: item.firstMonth,
-      lastMonth: item.lastMonth,
-      hasBaseMonth: item.hasBaseMonth,
-      points: item.points,
-    })
-  }
-
-  return { payload, missing }
-}
 
 function dedupeCatalog(valuesByLevel) {
   const map = new Map()
@@ -212,14 +84,6 @@ function dedupeCatalog(valuesByLevel) {
     }
   }
   return [...map.values()].map(makeCatalogNode)
-}
-
-function computeMonths(series) {
-  const set = new Set()
-  for (const item of series) {
-    for (const point of item.points) set.add(point.month)
-  }
-  return [...set].sort()
 }
 
 async function main() {
@@ -233,8 +97,8 @@ async function main() {
   const [raw764, raw762] = await Promise.all([loadSeries(764), loadSeries(762)])
 
   console.log('\n3) Normalizando y deduplicando series...')
-  const classSeries = dedupeByRubricaName(normalizeSeries(raw764)).filter(item => item.points.length > 0)
-  const groupSeries = dedupeByRubricaName(normalizeSeries(raw762)).filter(item => item.points.length > 0)
+  const classSeries = dedupeByRubricaName(normalizeSeries(raw764, BASE_MONTH)).filter(item => item.points.length > 0)
+  const groupSeries = dedupeByRubricaName(normalizeSeries(raw762, BASE_MONTH)).filter(item => item.points.length > 0)
   const generalSeries = groupSeries.find(item => item.rubricaName.toLowerCase() === 'índice general')
 
   if (!generalSeries) {

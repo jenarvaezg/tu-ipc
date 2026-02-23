@@ -1,8 +1,18 @@
 import { writeFileSync, mkdirSync } from 'fs'
+import {
+  assertArrayResponse,
+  chainLinkRegions,
+  collectSortedNewMonths,
+  combineSplitCategory12,
+  matchCategory,
+  parseSeriesData,
+} from './lib/download-ine-data-core.mjs'
 
 const BASE = 'https://servicios.ine.es/wstempus/js/ES'
+const HISTORICAL_DATE_RANGE = '20020101:20271231'
+const RECENT_DATE_RANGE = '20091201:20271231'
 
-// Table 50913: IPC Base 2021, ECOICOP v1 (12 categories), Dec 2009 – Nov 2025
+// Table 50913: IPC Base 2021, ECOICOP v1 (12 categories), historical monthly range (2002+)
 const OLD_TABLE = '50913'
 
 // Table 76136: IPC Base 2025, ECOICOP v2 (13 categories), Dec 2024 onwards
@@ -100,34 +110,12 @@ const newCatMap = [
   { code: '12b', keywords: ['cuidado personal'] },
 ]
 
-function matchCategory(nombre, map = catMap) {
-  const lower = nombre.toLowerCase()
-  for (const cat of map) {
-    if (cat.keywords.some(kw => lower.includes(kw))) {
-      if (cat.code === '02' && lower.includes('alimentos')) continue
-      return cat
-    }
-  }
-  return null
-}
-
-function parseSeriesData(dataArray) {
-  const data = {}
-  for (const d of dataArray || []) {
-    const date = new Date(d.Fecha)
-    const year = date.getUTCFullYear()
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0')
-    data[`${year}-${month}`] = d.Valor
-  }
-  return data
-}
-
-async function fetchTable(tableId, label) {
-  const url = `${BASE}/DATOS_TABLA/${tableId}?date=20091201:20271231`
+async function fetchTable(tableId, label, dateRange) {
+  const url = `${BASE}/DATOS_TABLA/${tableId}?date=${dateRange}`
   console.log(`  ${label}: ${url}`)
   const resp = await fetch(url)
   if (!resp.ok) throw new Error(`HTTP ${resp.status} fetching ${label}`)
-  return resp.json()
+  return assertArrayResponse(await resp.json(), label)
 }
 
 async function main() {
@@ -136,8 +124,8 @@ async function main() {
 
   // Fetch both tables in parallel
   const [oldRaw, newRaw] = await Promise.all([
-    fetchTable(OLD_TABLE, `Tabla ${OLD_TABLE} (base 2021, ECOICOP v1)`),
-    fetchTable(NEW_TABLE, `Tabla ${NEW_TABLE} (base 2025, ECOICOP v2)`),
+    fetchTable(OLD_TABLE, `Tabla ${OLD_TABLE} (base 2021, ECOICOP v1)`, HISTORICAL_DATE_RANGE),
+    fetchTable(NEW_TABLE, `Tabla ${NEW_TABLE} (base 2025, ECOICOP v2)`, RECENT_DATE_RANGE),
   ])
 
   console.log(`\nTabla vieja: ${oldRaw.length} series`)
@@ -207,32 +195,8 @@ async function main() {
     newData[regionCode][cat.code] = data
   }
 
-  // Combine 12a + 12b into synthetic 12 using weighted average
-  for (const regionCode of Object.keys(newData)) {
-    const rd = newData[regionCode]
-    if (rd['12a'] && rd['12b']) {
-      const combined = {}
-      const allKeys = new Set([...Object.keys(rd['12a']), ...Object.keys(rd['12b'])])
-      for (const m of allKeys) {
-        const v12a = rd['12a'][m]
-        const v12b = rd['12b'][m]
-        if (v12a != null && v12b != null) {
-          combined[m] = (WEIGHT_NEW_12 * v12a + WEIGHT_NEW_13 * v12b) / (WEIGHT_NEW_12 + WEIGHT_NEW_13)
-        }
-      }
-      rd['12'] = combined
-      delete rd['12a']
-      delete rd['12b']
-    }
-  }
-
-  const newMonths = new Set()
-  for (const rd of Object.values(newData)) {
-    for (const catData of Object.values(rd)) {
-      for (const m of Object.keys(catData)) newMonths.add(m)
-    }
-  }
-  const sortedNewMonths = [...newMonths].sort()
+  combineSplitCategory12(newData, WEIGHT_NEW_12, WEIGHT_NEW_13)
+  const sortedNewMonths = collectSortedNewMonths(newData)
   console.log(`  Rango nuevo: ${sortedNewMonths[0]} → ${sortedNewMonths[sortedNewMonths.length - 1]}`)
 
   // ─── Step 3: Chain-link new months onto old data ──────────────────────
@@ -241,38 +205,13 @@ async function main() {
   //   extended_value = new_value * link_factor  (for months beyond old data)
   console.log(`\nPaso 3: Encadenando series (enlace en ${lastOldMonth})...`)
 
-  let extended = 0
-  let skipped = 0
-
-  for (const [regionCode, region] of Object.entries(regions)) {
-    const regionNew = newData[regionCode]
-    if (!regionNew) continue
-
-    for (const [catCode, catObj] of Object.entries(region.categories)) {
-      const newCatData = regionNew[catCode]
-      if (!newCatData) continue
-
-      const oldValue = catObj.data[lastOldMonth]
-      const newValue = newCatData[lastOldMonth]
-
-      if (oldValue == null || newValue == null || newValue === 0) {
-        skipped++
-        continue
-      }
-
-      const linkFactor = oldValue / newValue
-
-      // Append months that exist in new data but not in old
-      for (const m of sortedNewMonths) {
-        if (m <= lastOldMonth) continue
-        if (newCatData[m] == null) continue
-
-        catObj.data[m] = Math.round(newCatData[m] * linkFactor * 1000) / 1000
-        allMonths.add(m)
-        extended++
-      }
-    }
-  }
+  const { extended, skipped } = chainLinkRegions(
+    regions,
+    newData,
+    lastOldMonth,
+    sortedNewMonths,
+    allMonths
+  )
 
   console.log(`  ${extended} puntos de datos añadidos`)
   if (skipped > 0) console.log(`  ${skipped} categorías sin enlace (falta overlap)`)
