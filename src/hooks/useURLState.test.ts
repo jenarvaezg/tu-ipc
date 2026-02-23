@@ -29,6 +29,25 @@ describe('parseURLState', () => {
     })
   })
 
+  it('parses compact weights (ws)', () => {
+    // 1.0, 2.0, ..., 12.0 encoded in base36 with 2-char chunks (scaled x10)
+    setSearch('?ws=0a0k0u141e1o1y282i2s323c')
+    const state = parseURLState()
+    expect(state.weights).toBeDefined()
+    CATEGORIES.forEach((cat, i) => {
+      expect(state.weights![cat.code]).toBe(i + 1)
+    })
+  })
+
+  it('prefers compact weights when ws and w are both present', () => {
+    setSearch('?ws=0a0k0u141e1o1y282i2s323c&w=99,99,99,99,99,99,99,99,99,99,99,99')
+    const state = parseURLState()
+    expect(state.weights).toBeDefined()
+    CATEGORIES.forEach((cat, i) => {
+      expect(state.weights![cat.code]).toBe(i + 1)
+    })
+  })
+
   it('ignores invalid weights (wrong count)', () => {
     setSearch('?w=10,20,30')
     const state = parseURLState()
@@ -164,7 +183,8 @@ describe('syncToURL', () => {
       comparisonIds: [],
       comparisonRegions: [],
     })
-    expect(lastURL).toContain('w=')
+    expect(lastURL).toContain('ws=')
+    expect(lastURL).not.toContain('w=')
   })
 
   it('includes region when not nacional', () => {
