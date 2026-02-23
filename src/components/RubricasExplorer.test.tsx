@@ -82,6 +82,69 @@ function createDataset(seriesCount = 3): RubricasData {
   }
 }
 
+function createDatasetWithCustomSeries(valuesBySeries: number[][]): RubricasData {
+  const months = ['2002-01', '2002-02', '2002-03']
+  const classSeries = valuesBySeries.map((values, i) => {
+    const id = 1001 + i
+    return {
+      id: `764:${id}`,
+      ineSeriesCode: `IPC${id}`,
+      variableId: 764 as const,
+      level: 'clase' as const,
+      rubricaId: id,
+      parentRubricaId: 200 + i,
+      codigo: `01.${i + 1}`,
+      nombre: `Clase ${i + 1}`,
+      firstMonth: '2002-01',
+      lastMonth: '2002-03',
+      hasBaseMonth: true,
+      points: [
+        { month: '2002-01', value: values[0] },
+        { month: '2002-02', value: values[1] },
+        { month: '2002-03', value: values[2] },
+      ],
+    }
+  })
+
+  return {
+    schemaVersion: '1.0',
+    generatedAt: '2026-02-21T00:00:00.000Z',
+    baseMonth: '2002-01',
+    months,
+    series: [
+      {
+        id: '762:304092',
+        ineSeriesCode: 'IPC000',
+        variableId: 762,
+        level: 'grupo',
+        rubricaId: 304092,
+        codigo: '00',
+        nombre: 'Índice general',
+        firstMonth: '2002-01',
+        lastMonth: '2002-03',
+        hasBaseMonth: true,
+        points: [
+          { month: '2002-01', value: 100 },
+          { month: '2002-02', value: 100 },
+          { month: '2002-03', value: 100 },
+        ],
+      },
+      ...classSeries,
+    ],
+    catalog: [
+      { id: 1, variableId: 762, level: 'grupo', codigo: '01', nombre: 'Grupo 01', parentIds: [] },
+      ...valuesBySeries.map((_, i) => ({
+        id: 200 + i,
+        variableId: 763 as const,
+        level: 'subgrupo' as const,
+        codigo: `01${i + 1}`,
+        nombre: `Subgrupo ${i + 1}`,
+        parentIds: [1],
+      })),
+    ],
+  }
+}
+
 describe('RubricasExplorer', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
@@ -98,7 +161,9 @@ describe('RubricasExplorer', () => {
 
     await screen.findByText('Selector de rúbricas')
     expect(screen.getByText(/1\/6 seleccionadas/i)).toBeInTheDocument()
-    expect(screen.getByText(/hasta marzo 2002/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(/febrero 2002\s*–\s*marzo 2002\s*·\s*Selecciona hasta/i)
+    ).toBeInTheDocument()
   })
 
   it('writes selected series into URL params', async () => {
@@ -112,7 +177,7 @@ describe('RubricasExplorer', () => {
     await screen.findByText('Selector de rúbricas')
 
     const user = userEvent.setup()
-    await user.click(screen.getByRole('button', { name: /Quitar rúbrica 01\.1 Clase 1/i }))
+    await user.click(screen.getByRole('button', { name: /^Quitar rúbrica 01\.1 Clase 1$/i }))
 
     await waitFor(() => {
       expect(window.location.search).toContain('rs=')
@@ -135,5 +200,49 @@ describe('RubricasExplorer', () => {
     await screen.findByText('Selector de rúbricas')
 
     expect(screen.getByText(/límite alcanzado: máximo 6 rúbricas/i)).toBeInTheDocument()
+  })
+
+  it('removes selected category when clicking summary chip', async () => {
+    window.history.replaceState({}, '', '/?t=rubricas')
+    vi.spyOn(window, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () => createDataset(3),
+    } as Response)
+
+    render(<RubricasExplorer />)
+    await screen.findByText('Selector de rúbricas')
+
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: /Quitar rúbrica 01\.1 Clase 1 desde resumen/i }))
+
+    await waitFor(() => {
+      expect(window.location.search).toContain('rs=')
+      expect(window.location.search).not.toContain('764:1001')
+    })
+  })
+
+  it('uses selected period for suggested selection', async () => {
+    window.history.replaceState({}, '', '/?t=rubricas&rf=2002-02&re=2002-03')
+    vi.spyOn(window, 'fetch').mockResolvedValue({
+      ok: true,
+      json: async () =>
+        createDatasetWithCustomSeries([
+          [100, 200, 200], // sube antes del periodo filtrado
+          [100, 100, 130],
+          [100, 100, 125],
+          [100, 100, 120],
+          [100, 100, 115],
+        ]),
+    } as Response)
+
+    render(<RubricasExplorer />)
+    await screen.findByText('Selector de rúbricas')
+
+    expect(
+      screen.getByRole('button', { name: /Seleccionar rúbrica 01\.1 Clase 1/i })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /^Quitar rúbrica 01\.5 Clase 5$/i })
+    ).toBeInTheDocument()
   })
 })

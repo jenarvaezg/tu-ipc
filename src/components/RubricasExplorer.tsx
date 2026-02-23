@@ -9,10 +9,10 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { X } from "lucide-react";
 import rubricasDataUrl from "@/data/ipc-rubricas.json?url";
 import type { RubricasData, RubricaSeries } from "@/data/rubricasTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -93,15 +93,19 @@ function colorFromSeriesId(seriesId: string): string {
   return COLOR_PALETTE[Math.abs(hash) % COLOR_PALETTE.length];
 }
 
-function getDefaultSelection(
+function getSuggestedSelection(
   series: RubricaSeries[],
-  baseMonth: string,
+  startMonth: string,
   endMonth: string,
 ): string[] {
+  if (!startMonth || !endMonth || startMonth > endMonth) {
+    return [];
+  }
+
   const ranked = series
     .map((item) => ({
       id: item.id,
-      endAccumulated: computeGeneralBenchmark(item.points, baseMonth, endMonth),
+      endAccumulated: computeGeneralBenchmark(item.points, startMonth, endMonth),
     }))
     .filter((item) => item.endAccumulated != null)
     .sort(
@@ -236,7 +240,7 @@ export default function RubricasExplorer() {
     setSelectedSeriesIds(
       parsedSelection.length > 0
         ? parsedSelection
-        : getDefaultSelection(classSeries, baseMonth, nextTo),
+        : getSuggestedSelection(classSeries, nextFrom, nextTo),
     );
 
     initializedRef.current = true;
@@ -348,20 +352,20 @@ export default function RubricasExplorer() {
       dataKey: dataKeyForSeries(item.id),
       accumulated: buildAccumulatedSeries(
         item.points,
-        baseMonth,
+        fromMonth,
         visibleMonths,
       ),
     }));
-  }, [baseMonth, selectedSeries, visibleMonths]);
+  }, [fromMonth, selectedSeries, visibleMonths]);
 
   const benchmarkValue = useMemo(() => {
     if (!generalSeries || visibleMonths.length === 0) return null;
     return computeGeneralBenchmark(
       generalSeries.points,
-      baseMonth,
+      fromMonth,
       visibleMonths[visibleMonths.length - 1],
     );
-  }, [baseMonth, generalSeries, visibleMonths]);
+  }, [fromMonth, generalSeries, visibleMonths]);
 
   const chartData = useMemo(() => {
     return visibleMonths.map((month) => {
@@ -467,7 +471,7 @@ export default function RubricasExplorer() {
   const resetSelection = () => {
     setSelectionNotice("");
     setSelectedSeriesIds(
-      getDefaultSelection(classSeries, baseMonth, toMonth || defaultEndMonth),
+      getSuggestedSelection(classSeries, fromMonth, toMonth || defaultEndMonth),
     );
   };
 
@@ -496,9 +500,10 @@ export default function RubricasExplorer() {
       <Card className="border-primary/30 bg-primary/5">
         <CardContent className="py-4">
           <p className="text-sm font-medium text-foreground">
-            Inflación acumulada por rúbricas desde {formatMonth(baseMonth)}
+            Inflación acumulada por rúbricas en el periodo seleccionado
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
+            {formatMonth(fromMonth)} – {formatMonth(toMonth)} ·{" "}
             Selecciona hasta {MAX_SELECTED_SERIES} clases ECOICOP y compáralas
             contra la referencia del IPC general.
           </p>
@@ -642,11 +647,11 @@ export default function RubricasExplorer() {
         <Card className="min-w-0">
           <CardHeader>
             <CardTitle className="text-base">
-              Evolución acumulada (base {formatMonth(baseMonth)} = 0%)
+              Evolución acumulada (base {formatMonth(fromMonth)} = 0%)
             </CardTitle>
             <p className="text-xs text-muted-foreground">
-              Benchmark horizontal (rojo): IPC general acumulado hasta{" "}
-              {formatMonth(toMonth)}
+              Benchmark horizontal (rojo): IPC general acumulado del periodo{" "}
+              {formatMonth(fromMonth)} – {formatMonth(toMonth)}
               {benchmarkValue != null ? ` · ${benchmarkValue.toFixed(1)}%` : ""}
             </p>
           </CardHeader>
@@ -731,7 +736,7 @@ export default function RubricasExplorer() {
                       strokeWidth={2}
                       strokeDasharray="8 4"
                       label={{
-                        value: `IPC general ${benchmarkValue.toFixed(1)}%`,
+                        value: `IPC general periodo ${benchmarkValue.toFixed(1)}%`,
                         fill: "hsl(var(--rubricas-reference))",
                         position: "insideBottomRight",
                         fontSize: 12,
@@ -792,10 +797,12 @@ export default function RubricasExplorer() {
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {latestSeriesValues.map((item) => (
-                    <Badge
+                    <button
                       key={`summary-${item.id}`}
-                      variant="secondary"
-                      className="flex items-center gap-2 border border-border bg-background text-xs text-foreground"
+                      type="button"
+                      onClick={() => handleToggleSeries(item.id)}
+                      className="flex items-center gap-2 rounded-md border border-border bg-background px-2.5 py-1 text-xs text-foreground transition-colors hover:border-primary/60 hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      aria-label={`Quitar rúbrica ${item.code} ${item.name} desde resumen`}
                     >
                       <span
                         className="inline-block h-2 w-2 rounded-full"
@@ -808,7 +815,8 @@ export default function RubricasExplorer() {
                       <span className="font-semibold">
                         {item.value!.toFixed(1)}%
                       </span>
-                    </Badge>
+                      <X className="h-3 w-3 text-muted-foreground" aria-hidden="true" />
+                    </button>
                   ))}
                 </div>
               </div>
@@ -816,7 +824,7 @@ export default function RubricasExplorer() {
 
             <p className="text-xs text-muted-foreground">
               Fuente: INE (IPC, índices mensuales ECOICOP). Base fija para
-              acumulado: {formatMonth(baseMonth)}.
+              acumulado en este gráfico: {formatMonth(fromMonth)}.
             </p>
           </CardContent>
         </Card>
