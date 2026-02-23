@@ -12,3 +12,4 @@ tsconfig.tsbuildinfo
 prompt.md
 test-results
 playwright-report
+coverage/
