@@ -6,9 +6,9 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tu IPC Personal — Estima tu inflación en España</title>
-    <meta name="description" content="Ajusta los pesos de gasto a tu estilo de vida y compara tu inflación personal con el IPC oficial del INE. Datos actualizados por comunidad autónoma." />
+    <meta name="description" content="¿Cuál es mi IPC? Calcula tu inflación personal ajustando tus gastos reales y compara con el IPC oficial del INE. Datos actualizados por comunidad autónoma." />
     <meta property="og:title" content="Tu IPC Personal — Estima tu inflación en España" />
-    <meta property="og:description" content="Ajusta los pesos de gasto a tu estilo de vida y compara tu inflación personal con el IPC oficial del INE. Datos actualizados por comunidad autónoma." />
+    <meta property="og:description" content="¿Cuál es mi IPC? Calcula tu inflación personal ajustando tus gastos reales y compara con el IPC oficial del INE. Datos actualizados por comunidad autónoma." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://tu-ipc.es" />
     <meta property="og:image" content="https://tu-ipc.es/og-image.jpg" />
@@ -19,10 +19,57 @@
     <meta property="og:site_name" content="Tu IPC Personal" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Tu IPC Personal — Estima tu inflación en España" />
-    <meta name="twitter:description" content="Ajusta los pesos de gasto a tu estilo de vida y compara tu inflación personal con el IPC oficial del INE. Datos actualizados por comunidad autónoma." />
+    <meta name="twitter:description" content="¿Cuál es mi IPC? Calcula tu inflación personal ajustando tus gastos reales y compara con el IPC oficial del INE. Datos actualizados por comunidad autónoma." />
     <meta name="twitter:image" content="https://tu-ipc.es/og-image.jpg" />
     <meta name="theme-color" content="#f97316" />
     <link rel="canonical" href="https://tu-ipc.es" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebApplication",
+          "name": "Tu IPC Personal",
+          "alternateName": ["Mi IPC", "Mi IPC Personal", "Calculadora IPC"],
+          "url": "https://tu-ipc.es",
+          "description": "Calcula mi IPC personal: ajusta tus gastos reales y compara tu inflación con el IPC oficial del INE por comunidad autónoma.",
+          "applicationCategory": "FinanceApplication",
+          "operatingSystem": "All",
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+          "inLanguage": "es"
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "¿Cómo calculo mi IPC personal?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Ajusta los pesos de las 12 categorías de gasto (alimentación, vivienda, transporte, etc.) para que reflejen tu consumo real. La calculadora aplica esos pesos a los índices oficiales del INE y obtiene tu IPC personal, que puede diferir del IPC oficial."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "¿Qué diferencia hay entre mi IPC y el IPC oficial?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "El IPC oficial usa pesos medios de todos los hogares españoles. Tu IPC personal refleja tus hábitos reales de consumo: si gastas más en alimentación y menos en ocio, tu inflación puede ser mayor o menor que la media."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "¿De dónde salen los datos de mi IPC?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Todos los datos provienen del Instituto Nacional de Estadística (INE). Se actualizan mensualmente con los índices ECOICOP por comunidad autónoma, base 2021=100."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
     <!-- Google Analytics (GA4) — Consent Mode v2: sin cookies por defecto -->
     <script>
       window.dataLayer = window.dataLayer || [];

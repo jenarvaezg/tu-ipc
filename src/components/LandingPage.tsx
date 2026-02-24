@@ -73,8 +73,8 @@ export default function LandingPage({ onStart }: LandingPageProps) {
             </p>
 
             <p className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
-              Ajusta tus hábitos de consumo, compara con el IPC oficial y entiende
-              en segundos cómo impacta la inflación en tu economía.
+              Ajusta tus hábitos de consumo, compara con el IPC oficial y
+              entiende en segundos cómo impacta la inflación en tu economía.
             </p>
 
             {/* CTA Buttons */}
@@ -157,6 +157,47 @@ export default function LandingPage({ onStart }: LandingPageProps) {
         </div>
       </div>
 
+      {/* FAQ Section — targets "mi IPC" search intent */}
+      <div className="mx-auto max-w-5xl px-4 py-10">
+        <h2 className="mb-6 text-center text-2xl font-bold md:text-3xl">
+          Preguntas frecuentes
+        </h2>
+        <dl className="space-y-5 text-sm leading-relaxed md:text-base">
+          <div>
+            <dt className="font-semibold text-foreground mb-1">
+              ¿Cómo calculo mi IPC personal?
+            </dt>
+            <dd className="text-muted-foreground">
+              Ajusta los pesos de las 12 categorías de gasto (alimentación,
+              vivienda, transporte, ocio...) para que reflejen tu consumo real.
+              La calculadora aplica esos pesos a los índices oficiales del INE y
+              obtiene tu IPC personal.
+            </dd>
+          </div>
+          <div>
+            <dt className="font-semibold text-foreground mb-1">
+              ¿Qué diferencia hay entre mi IPC y el IPC oficial?
+            </dt>
+            <dd className="text-muted-foreground">
+              El IPC oficial usa pesos medios de todos los hogares españoles. Tu
+              IPC personal refleja tus hábitos reales: si gastas más en
+              alimentación y menos en ocio, tu inflación puede ser mayor o menor
+              que la media.
+            </dd>
+          </div>
+          <div>
+            <dt className="font-semibold text-foreground mb-1">
+              ¿De dónde salen los datos de mi IPC?
+            </dt>
+            <dd className="text-muted-foreground">
+              Todos los datos provienen del Instituto Nacional de Estadística
+              (INE). Se actualizan mensualmente con los índices ECOICOP por
+              comunidad autónoma, base 2021=100.
+            </dd>
+          </div>
+        </dl>
+      </div>
+
       {/* How it works Section */}
       <div className="bg-muted/30">
         <div className="mx-auto max-w-5xl px-4 py-12">
@@ -213,8 +254,8 @@ export default function LandingPage({ onStart }: LandingPageProps) {
                   Descubre tu inflación personal
                 </h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Obtén tu IPC personal, compáralo con la media oficial y detecta
-                  qué categorías explican la diferencia.
+                  Obtén tu IPC personal, compáralo con la media oficial y
+                  detecta qué categorías explican la diferencia.
                 </p>
               </div>
             </div>

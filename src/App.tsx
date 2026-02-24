@@ -356,7 +356,7 @@ export default function App() {
       ? "Cómo se calcula tu inflación personal: fuente de datos del INE, categorías ECOICOP, encadenamiento de bases y fórmulas."
       : showPrivacy
         ? "Política de privacidad de Tu IPC Personal: analítica sin cookies, datos locales, código abierto."
-        : "Ajusta los pesos de gasto a tu estilo de vida y compara tu inflación personal con el IPC oficial del INE. Datos actualizados por comunidad autónoma.",
+        : "¿Cuál es mi IPC? Calcula tu inflación personal ajustando tus gastos reales y compara con el IPC oficial del INE. Datos actualizados por comunidad autónoma.",
   );
 
   if (isEmbed) {

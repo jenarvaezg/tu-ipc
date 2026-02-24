@@ -13,3 +13,4 @@ prompt.md
 test-results
 playwright-report
 coverage/
+.claude
