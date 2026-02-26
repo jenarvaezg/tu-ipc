@@ -48,6 +48,11 @@ const LOCAL_STORAGE_KEYS = [
     description:
       "Tu paleta de colores seleccionada (para integraciones de marca)",
   },
+  {
+    key: "tu-ipc-analytics-consent",
+    description:
+      "Tu preferencia de analítica opcional (activada o desactivada)",
+  },
 ];
 
 export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
@@ -63,19 +68,26 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
           Cómo tratamos tus datos en Tu IPC Personal
         </p>
 
-        <Section title="1. Datos que recopilamos">
+        <Section title="1. Analítica opcional y consentimiento">
           <p className="text-muted-foreground mb-3">
             Utilizamos Google Analytics 4 (GA4) configurado en{" "}
             <strong className="text-foreground">
-              modo sin cookies (Consent Mode v2 con valores denied por defecto)
+              Consent Mode v2 con valores denied por defecto
             </strong>
-            . Esto significa que:
+            . Solo activamos la analítica con cookies si das consentimiento al
+            entrar en el wizard o al saltar a la calculadora desde la landing
+            (consentimiento implícito), o si la activas manualmente desde el
+            pie de página.
           </p>
           <ul className="text-muted-foreground space-y-2 ml-4 list-disc mb-4">
-            <li>No se instalan cookies de analítica en tu navegador</li>
-            <li>No se almacenan identificadores personales</li>
+            <li>Sin consentimiento, no se instalan cookies de analítica</li>
             <li>
-              Google solo recibe pings anonimizados y modelados estadísticamente
+              Con consentimiento, GA4 puede usar cookies como{" "}
+              <code className="text-foreground">_ga</code> o{" "}
+              <code className="text-foreground">_gid</code>
+            </li>
+            <li>
+              No se recogen datos para publicidad ni personalización de anuncios
             </li>
             <li>
               La dirección IP se anonimiza antes de cualquier procesamiento
@@ -84,7 +96,8 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
           <p className="text-muted-foreground">
             Los datos agregados nos ayudan a entender el uso general de la
             herramienta (páginas visitadas, funciones usadas), sin identificar a
-            usuarios individuales.
+            usuarios individuales. Puedes cambiar esta preferencia cuando
+            quieras desde el pie de página.
           </p>
         </Section>
 
@@ -114,13 +127,12 @@ export default function PrivacyPolicy({ onBack }: PrivacyPolicyProps) {
           </div>
         </Section>
 
-        <Section title="3. Sin cookies propias">
+        <Section title="3. Cookies y control">
           <p className="text-muted-foreground">
-            Esta web no establece ninguna cookie propia. La configuración de GA4
-            en modo Consent Mode denied impide que Google Analytics cree cookies
-            como <code className="text-foreground">_ga</code> o{" "}
-            <code className="text-foreground">_gid</code>. No utilizamos cookies
-            de publicidad, de seguimiento ni de terceros.
+            Esta web no establece cookies propias de seguimiento. Las cookies de
+            analítica de GA4 son opcionales y solo se activan tras el
+            consentimiento indicado arriba. Puedes activar o desactivar la
+            analítica en cualquier momento desde el enlace del pie de página.
           </p>
         </Section>
 

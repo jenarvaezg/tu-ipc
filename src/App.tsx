@@ -18,7 +18,15 @@ import { useComparisons } from "@/hooks/useComparisons";
 import { useDocumentMeta } from "@/hooks/useDocumentMeta";
 import { useTheme } from "@/hooks/useTheme";
 import { debounce } from "@/utils/debounce";
-import { trackEvent } from "@/utils/analytics";
+import {
+  getAnalyticsConsent,
+  grantAnalyticsConsent,
+  initializeAnalyticsConsent,
+  setAnalyticsConsent as persistAnalyticsConsent,
+  trackEvent,
+  trackPageView,
+  type AnalyticsConsent,
+} from "@/utils/analytics";
 import Header from "@/components/Header";
 import KPICards from "@/components/KPICards";
 import TabNavigation from "@/components/TabNavigation";
@@ -115,6 +123,8 @@ export default function App() {
   const [showPrivacy, setShowPrivacy] = useState(
     () => !isEmbed && initialRoute === "privacidad",
   );
+  const [analyticsConsent, setAnalyticsConsentStatus] =
+    useState<AnalyticsConsent | null>(() => getAnalyticsConsent());
 
   const {
     weights,
@@ -145,6 +155,27 @@ export default function App() {
   const [activeTab, setActiveTab] = useState(urlState.activeTab || "evolucion");
 
   const chartRef = useRef<HTMLDivElement>(null);
+  const lastTrackedPageRef = useRef("");
+
+  useEffect(() => {
+    initializeAnalyticsConsent();
+    setAnalyticsConsentStatus(getAnalyticsConsent());
+  }, []);
+
+  const handleGrantAnalyticsConsent = useCallback((source: string) => {
+    grantAnalyticsConsent(source);
+    setAnalyticsConsentStatus("granted");
+  }, []);
+
+  const handleDisableAnalyticsConsent = useCallback(() => {
+    trackEvent("analytics_consent_revoked");
+    persistAnalyticsConsent("denied");
+    setAnalyticsConsentStatus("denied");
+  }, []);
+
+  const handleEnableAnalyticsFromFooter = useCallback(() => {
+    handleGrantAnalyticsConsent("footer_enable");
+  }, [handleGrantAnalyticsConsent]);
 
   const regionData = ipcData.regions[region];
   const regionCategories = regionData?.categories ?? {};
@@ -355,9 +386,27 @@ export default function App() {
     showMethodology
       ? "Cómo se calcula tu inflación personal: fuente de datos del INE, categorías ECOICOP, encadenamiento de bases y fórmulas."
       : showPrivacy
-        ? "Política de privacidad de Tu IPC Personal: analítica sin cookies, datos locales, código abierto."
+        ? "Política de privacidad de Tu IPC Personal: analítica opcional con consentimiento, datos locales y control del usuario."
         : "¿Cuál es mi IPC? Calcula tu inflación personal ajustando tus gastos reales y compara con el IPC oficial del INE. Datos actualizados por comunidad autónoma.",
   );
+
+  useEffect(() => {
+    let pagePath = "/landing";
+    if (isEmbed) {
+      pagePath =
+        activeTab === "rubricas" ? "/embed/rubricas" : "/embed/calculadora";
+    } else if (showMethodology) {
+      pagePath = "/metodologia";
+    } else if (showPrivacy) {
+      pagePath = "/privacidad";
+    } else if (!showLanding) {
+      pagePath = `/calculadora/${activeTab}`;
+    }
+
+    if (lastTrackedPageRef.current === pagePath) return;
+    lastTrackedPageRef.current = pagePath;
+    trackPageView(pagePath);
+  }, [isEmbed, showMethodology, showPrivacy, showLanding, activeTab]);
 
   if (isEmbed) {
     if (activeTab === "rubricas") {
@@ -426,7 +475,10 @@ export default function App() {
   if (showLanding) {
     return (
       <main>
-        <LandingPage onStart={handleLandingStart} />
+        <LandingPage
+          onStart={handleLandingStart}
+          onImplicitAnalyticsConsent={handleGrantAnalyticsConsent}
+        />
       </main>
     );
   }
@@ -628,6 +680,9 @@ export default function App() {
           <Footer
             onMethodology={navigateToMethodology}
             onPrivacy={navigateToPrivacy}
+            analyticsConsent={analyticsConsent}
+            onEnableAnalytics={handleEnableAnalyticsFromFooter}
+            onDisableAnalytics={handleDisableAnalyticsConsent}
           />
         </div>
       </main>

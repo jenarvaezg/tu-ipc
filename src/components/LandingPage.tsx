@@ -10,18 +10,35 @@ import { ArrowRight, BarChart3, TrendingUp, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import OnboardingQuiz from "@/components/OnboardingQuiz";
 import Footer from "@/components/Footer";
+import { trackEvent } from "@/utils/analytics";
 
 interface LandingPageProps {
   onStart: (weights?: Record<string, number>) => void;
+  onImplicitAnalyticsConsent?: (source: string) => void;
 }
 
-export default function LandingPage({ onStart }: LandingPageProps) {
+export default function LandingPage({
+  onStart,
+  onImplicitAnalyticsConsent,
+}: LandingPageProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
+
+  const handleStartWizard = () => {
+    onImplicitAnalyticsConsent?.("landing_wizard_entry");
+    trackEvent("landing_wizard_start");
+    setShowQuiz(true);
+  };
+
+  const handleSkipToCalculator = () => {
+    onImplicitAnalyticsConsent?.("landing_skip_calculator");
+    trackEvent("landing_skip_calculator");
+    onStart();
+  };
 
   if (showQuiz) {
     return (
@@ -81,7 +98,7 @@ export default function LandingPage({ onStart }: LandingPageProps) {
             <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
               <Button
                 size="lg"
-                onClick={() => setShowQuiz(true)}
+                onClick={handleStartWizard}
                 className="text-base px-8 py-5 h-auto font-semibold shadow-lg hover:shadow-xl transition-all"
               >
                 Descubre tu IPC
@@ -89,7 +106,7 @@ export default function LandingPage({ onStart }: LandingPageProps) {
               </Button>
               <Button
                 variant="ghost"
-                onClick={() => onStart()}
+                onClick={handleSkipToCalculator}
                 className="text-sm text-muted-foreground hover:text-foreground"
               >
                 Saltar al calculador
@@ -265,7 +282,7 @@ export default function LandingPage({ onStart }: LandingPageProps) {
           <div className="text-center mt-10">
             <Button
               size="lg"
-              onClick={() => setShowQuiz(true)}
+              onClick={handleStartWizard}
               className="text-base px-10 py-5 h-auto font-semibold shadow-lg hover:shadow-xl transition-all"
             >
               Empieza ahora
@@ -278,6 +295,11 @@ export default function LandingPage({ onStart }: LandingPageProps) {
       <div className="max-w-5xl mx-auto px-4">
         <Footer />
       </div>
+      <p className="mx-auto max-w-5xl px-4 pb-6 text-center text-[11px] leading-relaxed text-muted-foreground/85">
+        Al entrar en el wizard o al saltar a la calculadora entendemos que
+        aceptas la analítica opcional de uso (Google Analytics con IP
+        anonimizada). Puedes desactivarla después desde el pie de página.
+      </p>
     </div>
   );
 }

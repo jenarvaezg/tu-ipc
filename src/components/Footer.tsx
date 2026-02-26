@@ -1,8 +1,12 @@
 import { Button } from "@/components/ui/button";
+import type { AnalyticsConsent } from "@/utils/analytics";
 
 interface FooterProps {
   onMethodology?: () => void;
   onPrivacy?: () => void;
+  analyticsConsent?: AnalyticsConsent | null;
+  onEnableAnalytics?: () => void;
+  onDisableAnalytics?: () => void;
 }
 
 function handleClearData() {
@@ -14,6 +18,7 @@ function handleClearData() {
     "tu-ipc-theme",
     "tu-ipc-color-theme",
     "tu-ipc-salary",
+    "tu-ipc-analytics-consent",
   ];
   for (const key of keys) {
     localStorage.removeItem(key);
@@ -21,7 +26,18 @@ function handleClearData() {
   window.location.reload();
 }
 
-export default function Footer({ onMethodology, onPrivacy }: FooterProps) {
+export default function Footer({
+  onMethodology,
+  onPrivacy,
+  analyticsConsent,
+  onEnableAnalytics,
+  onDisableAnalytics,
+}: FooterProps) {
+  const analyticsEnabled = analyticsConsent === "granted";
+  const canToggleAnalytics = analyticsEnabled
+    ? typeof onDisableAnalytics === "function"
+    : typeof onEnableAnalytics === "function";
+
   return (
     <footer className="py-8">
       <div className="mb-6 h-px bg-border" />
@@ -102,6 +118,20 @@ export default function Footer({ onMethodology, onPrivacy }: FooterProps) {
             Borrar mis datos
           </Button>
         </p>
+        {canToggleAnalytics && (
+          <p className="mt-1">
+            Analítica opcional:{" "}
+            {analyticsEnabled ? "activada" : "desactivada"}
+            {" · "}
+            <Button
+              variant="link"
+              className="p-0 h-auto text-xs text-muted-foreground underline hover:text-primary"
+              onClick={analyticsEnabled ? onDisableAnalytics : onEnableAnalytics}
+            >
+              {analyticsEnabled ? "Desactivar" : "Activar"}
+            </Button>
+          </p>
+        )}
       </div>
     </footer>
   );

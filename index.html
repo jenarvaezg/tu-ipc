@@ -70,7 +70,7 @@
       ]
     }
     </script>
-    <!-- Google Analytics (GA4) — Consent Mode v2: sin cookies por defecto -->
+    <!-- Google Analytics (GA4) — Consent Mode v2: desactivado por defecto -->
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
@@ -81,7 +81,10 @@
         'ad_personalization': 'denied'
       });
       gtag('js', new Date());
-      gtag('config', 'G-MWRWP36LS5', { anonymize_ip: true });
+      gtag('config', 'G-MWRWP36LS5', {
+        anonymize_ip: true,
+        send_page_view: false
+      });
     </script>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-MWRWP36LS5"></script>
   </head>
