@@ -1,4 +1,19 @@
-export function monthLabel(timestamp) {
+export function monthLabel(point = {}) {
+  const yearFromFields = Number(point.Anyo)
+  const periodFromFields = Number(point.FK_Periodo)
+
+  if (
+    Number.isInteger(yearFromFields) &&
+    Number.isInteger(periodFromFields) &&
+    periodFromFields >= 1 &&
+    periodFromFields <= 12
+  ) {
+    return `${yearFromFields}-${String(periodFromFields).padStart(2, '0')}`
+  }
+
+  const timestamp = Number(point.Fecha)
+  if (!Number.isFinite(timestamp)) return ''
+
   const date = new Date(timestamp)
   const year = date.getUTCFullYear()
   const month = String(date.getUTCMonth() + 1).padStart(2, '0')
@@ -34,9 +49,10 @@ export function normalizeSeries(rawSeries, baseMonth) {
   return rawSeries.map(item => {
     const points = (item.Data || [])
       .map(point => ({
-        month: monthLabel(point.Fecha),
+        month: monthLabel(point),
         value: point.Valor,
       }))
+      .filter(point => point.month)
       .sort((a, b) => a.month.localeCompare(b.month))
 
     const firstMonth = points[0]?.month ?? ''

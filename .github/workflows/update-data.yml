@@ -1,7 +1,7 @@
 name: Update IPC Data
 on:
   schedule:
-    - cron: '0 8 16 * *'  # Día 16 de cada mes, 8:00 UTC
+    - cron: '0 8,12 * * 1-5'  # Días laborables, 8:00 y 12:00 UTC
   workflow_dispatch: {}     # Permitir ejecución manual
 jobs:
   update:
@@ -15,10 +15,11 @@ jobs:
           node-version: 20
       - run: npm ci
       - run: npm run download-data
+      - run: npm run download-rubricas-data
       - run: |
-          git diff --quiet src/data/ipc-data.json && exit 0
+          git diff --quiet src/data/ipc-data.json src/data/ipc-rubricas.json && exit 0
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add src/data/ipc-data.json
-          git commit -m "chore: update IPC data from INE"
+          git add src/data/ipc-data.json src/data/ipc-rubricas.json
+          git commit -m "chore: update IPC datasets from INE"
           git push

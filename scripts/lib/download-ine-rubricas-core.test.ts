@@ -43,6 +43,30 @@ describe('download-ine-rubricas core', () => {
     expect(series[0].points[0]).toEqual({ month: '2001-12', value: 58 })
   })
 
+  it('normalizeSeries prefers Anyo/FK_Periodo over UTC-boundary Fecha values', () => {
+    const series = normalizeSeries(
+      [
+        {
+          COD: 'A2',
+          Nombre: 'España. Índice general.',
+          Data: [
+            {
+              Fecha: 1769900400000,
+              FK_Periodo: 2,
+              Anyo: 2026,
+              Valor: 100.423,
+            },
+          ],
+        },
+      ],
+      '2002-01'
+    )
+
+    expect(series[0].firstMonth).toBe('2026-02')
+    expect(series[0].lastMonth).toBe('2026-02')
+    expect(series[0].points[0]).toEqual({ month: '2026-02', value: 100.423 })
+  })
+
   it('normalizeSeries handles missing fields and absent base month', () => {
     const series = normalizeSeries([{ Data: [] }], '2002-01')
     expect(series[0].ineSeriesCode).toBe('')
@@ -171,5 +195,22 @@ describe('download-ine-rubricas core', () => {
     ])
 
     expect(months).toEqual(['2002-01', '2002-02', '2002-03'])
+  })
+
+  it('normalizeSeries drops points without a valid month label', () => {
+    const series = normalizeSeries(
+      [
+        {
+          COD: 'A3',
+          Nombre: 'España. Sin fecha.',
+          Data: [{ Valor: 12 }],
+        },
+      ],
+      '2002-01'
+    )
+
+    expect(series[0].points).toEqual([])
+    expect(series[0].firstMonth).toBe('')
+    expect(series[0].lastMonth).toBe('')
   })
 })
