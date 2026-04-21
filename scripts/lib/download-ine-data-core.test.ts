@@ -5,6 +5,7 @@ import {
   combineSplitCategory12,
   matchCategory,
   parseSeriesData,
+  resolveRegionCode,
 } from './download-ine-data-core.mjs'
 
 describe('download-ine-data core', () => {
@@ -49,6 +50,16 @@ describe('download-ine-data core', () => {
   it('matchCategory returns null when there is no match', () => {
     const map = [{ code: '01', keywords: ['alimentos'] }]
     expect(matchCategory('Servicios financieros', map)).toBeNull()
+  })
+
+  it('resolveRegionCode accepts both Nacional aliases used by INE', () => {
+    expect(resolveRegionCode('Nacional')).toBe('nacional')
+    expect(resolveRegionCode('Total Nacional')).toBe('nacional')
+  })
+
+  it('resolveRegionCode trims whitespace and returns null for unknown labels', () => {
+    expect(resolveRegionCode(' Andalucía ')).toBe('andalucia')
+    expect(resolveRegionCode('España')).toBeNull()
   })
 
   it('combineSplitCategory12 builds synthetic 12 and removes split categories', () => {

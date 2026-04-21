@@ -6,6 +6,7 @@ import {
   combineSplitCategory12,
   matchCategory,
   parseSeriesData,
+  resolveRegionCode,
 } from './lib/download-ine-data-core.mjs'
 
 const BASE = 'https://servicios.ine.es/wstempus/js/ES'
@@ -26,30 +27,6 @@ const NEW_TABLE = '76136'
 // Used to combine new-12 + new-13 into a synthetic old-12 index before chain-linking.
 const WEIGHT_NEW_12 = 3.7 // Seguros y servicios financieros
 const WEIGHT_NEW_13 = 4.0 // Cuidado personal, protección social...
-
-// Map INE region names (from series "Nombre" field) to our codes
-const REGION_MAP = {
-  'Total Nacional': 'nacional',
-  'Andalucía': 'andalucia',
-  'Aragón': 'aragon',
-  'Asturias, Principado de': 'asturias',
-  'Balears, Illes': 'baleares',
-  'Canarias': 'canarias',
-  'Cantabria': 'cantabria',
-  'Castilla y León': 'castilla-leon',
-  'Castilla - La Mancha': 'castilla-mancha',
-  'Cataluña': 'cataluna',
-  'Comunitat Valenciana': 'valencia',
-  'Extremadura': 'extremadura',
-  'Galicia': 'galicia',
-  'Madrid, Comunidad de': 'madrid',
-  'Murcia, Región de': 'murcia',
-  'Navarra, Comunidad Foral de': 'navarra',
-  'País Vasco': 'pais-vasco',
-  'Rioja, La': 'rioja',
-  'Ceuta': 'ceuta',
-  'Melilla': 'melilla',
-}
 
 const REGION_DISPLAY_NAMES = {
   'nacional': 'Total Nacional',
@@ -143,7 +120,7 @@ async function main() {
     const parts = series.Nombre.split('.')
     if (parts.length < 3) continue
 
-    const regionCode = REGION_MAP[parts[0].trim()]
+    const regionCode = resolveRegionCode(parts[0])
     if (!regionCode) continue
 
     const cat = matchCategory(parts[1].trim(), catMap)
@@ -183,7 +160,7 @@ async function main() {
     const parts = series.Nombre.split('.')
     if (parts.length < 3) continue
 
-    const regionCode = REGION_MAP[parts[0].trim()]
+    const regionCode = resolveRegionCode(parts[0])
     if (!regionCode) continue
 
     const cat = matchCategory(parts[1].trim(), newCatMap)

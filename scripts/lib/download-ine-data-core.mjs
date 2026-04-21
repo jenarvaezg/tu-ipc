@@ -1,3 +1,27 @@
+const REGION_MAP = {
+  Nacional: 'nacional',
+  'Total Nacional': 'nacional',
+  'Andalucía': 'andalucia',
+  'Aragón': 'aragon',
+  'Asturias, Principado de': 'asturias',
+  'Balears, Illes': 'baleares',
+  'Canarias': 'canarias',
+  'Cantabria': 'cantabria',
+  'Castilla y León': 'castilla-leon',
+  'Castilla - La Mancha': 'castilla-mancha',
+  'Cataluña': 'cataluna',
+  'Comunitat Valenciana': 'valencia',
+  'Extremadura': 'extremadura',
+  'Galicia': 'galicia',
+  'Madrid, Comunidad de': 'madrid',
+  'Murcia, Región de': 'murcia',
+  'Navarra, Comunidad Foral de': 'navarra',
+  'País Vasco': 'pais-vasco',
+  'Rioja, La': 'rioja',
+  Ceuta: 'ceuta',
+  Melilla: 'melilla',
+}
+
 export function matchCategory(nombre, map) {
   const lower = nombre.toLowerCase()
   for (const cat of map) {
@@ -7,6 +31,11 @@ export function matchCategory(nombre, map) {
     }
   }
   return null
+}
+
+export function resolveRegionCode(regionName) {
+  if (typeof regionName !== 'string') return null
+  return REGION_MAP[regionName.trim()] ?? null
 }
 
 export function parseSeriesData(dataArray) {
