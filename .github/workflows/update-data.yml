@@ -16,10 +16,21 @@ jobs:
       - run: npm ci
       - run: npm run download-data
       - run: npm run download-rubricas-data
-      - run: |
-          git diff --quiet src/data/ipc-data.json src/data/ipc-rubricas.json && exit 0
+      - id: data-diff
+        run: |
+          if git diff --quiet src/data/ipc-data.json src/data/ipc-rubricas.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.data-diff.outputs.changed == 'true'
+        run: npm run build
+      - if: steps.data-diff.outputs.changed == 'true'
+        run: npm test
+      - if: steps.data-diff.outputs.changed == 'true'
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add src/data/ipc-data.json src/data/ipc-rubricas.json
-          git commit -m "chore: update IPC datasets from INE"
+          HUSKY=0 git commit -m "chore: update IPC datasets from INE"
           git push

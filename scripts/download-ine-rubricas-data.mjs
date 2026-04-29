@@ -8,6 +8,7 @@ import {
   dedupeByRubricaName,
   normalizeSeries,
 } from './lib/download-ine-rubricas-core.mjs'
+import { fetchJsonWithRetry, isRetriableInePayload } from './lib/ine-fetch.mjs'
 
 const BASE = 'https://servicios.ine.es/wstempus/js/ES'
 const DATE_RANGE = '20020101:20271231'
@@ -29,15 +30,17 @@ const LEVEL_BY_VARIABLE = {
 async function fetchJSON(url, label) {
   console.log(`  ${label}`)
   try {
-    const resp = await fetch(url)
-    if (!resp.ok) throw new Error(`HTTP ${resp.status} en ${label}`)
-    return resp.json()
+    return await fetchJsonWithRetry(url, label)
   } catch (_error) {
     const raw = execFileSync('curl', ['-sS', url], {
       encoding: 'utf8',
       maxBuffer: 100 * 1024 * 1024,
     })
-    return JSON.parse(raw)
+    const payload = JSON.parse(raw)
+    if (isRetriableInePayload(payload)) {
+      throw new Error(`Respuesta temporal del INE en ${label}: ${payload.status || payload.Status}`)
+    }
+    return payload
   }
 }
 

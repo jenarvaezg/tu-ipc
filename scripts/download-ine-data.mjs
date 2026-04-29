@@ -8,6 +8,7 @@ import {
   parseSeriesData,
   resolveRegionCode,
 } from './lib/download-ine-data-core.mjs'
+import { fetchJsonWithRetry } from './lib/ine-fetch.mjs'
 
 const BASE = 'https://servicios.ine.es/wstempus/js/ES'
 const HISTORICAL_DATE_RANGE = '20020101:20271231'
@@ -90,9 +91,7 @@ const newCatMap = [
 async function fetchTable(tableId, label, dateRange) {
   const url = `${BASE}/DATOS_TABLA/${tableId}?date=${dateRange}`
   console.log(`  ${label}: ${url}`)
-  const resp = await fetch(url)
-  if (!resp.ok) throw new Error(`HTTP ${resp.status} fetching ${label}`)
-  return assertArrayResponse(await resp.json(), label)
+  return assertArrayResponse(await fetchJsonWithRetry(url, label), label)
 }
 
 async function main() {
