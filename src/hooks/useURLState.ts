@@ -12,7 +12,10 @@ const LEGACY_WEIGHTS_PARAM = 'w'
 // DEPRECATED (2026-02-23): keep `w` support only for backwards-compatible shared links.
 // TODO(boy-scout): remove legacy `w` parsing/fallback after migration window once usage is negligible.
 
-interface URLState {
+const VALID_TABS = ['evolucion', 'rubricas', 'desglose', 'sueldo', 'regiones'] as const
+type ValidTab = (typeof VALID_TABS)[number]
+
+export interface URLState {
   weights?: Record<string, number>
   startMonth?: string
   endMonth?: string
@@ -106,25 +109,28 @@ export function parseURLState(): URLState {
 
   // Parse tab: t=evolucion
   const t = params.get('t')
-  if (t && ['evolucion', 'rubricas', 'desglose', 'sueldo', 'regiones'].includes(t)) {
+  if (t && (VALID_TABS as readonly string[]).includes(t)) {
     result.activeTab = t
   }
 
   const rs = params.get('rs')
   if (rs) {
-    result.rubricasSeriesIds = rs.split(',').filter(Boolean)
+    const ids = rs.split(',').filter(Boolean)
+    if (ids.length > 0) result.rubricasSeriesIds = ids
   }
 
   // Parse comparisons: c=joven,pensionista-propietario
   const c = params.get('c')
   if (c) {
-    result.comparisonIds = c.split(',').filter(Boolean)
+    const ids = c.split(',').filter(Boolean)
+    if (ids.length > 0) result.comparisonIds = ids
   }
 
   // Parse region comparisons: cr=madrid,cataluna
   const cr = params.get('cr')
   if (cr) {
-    result.comparisonRegions = cr.split(',').filter(Boolean)
+    const ids = cr.split(',').filter(Boolean)
+    if (ids.length > 0) result.comparisonRegions = ids
   }
 
   // Parse color theme: theme=hesperides
@@ -136,25 +142,13 @@ export function parseURLState(): URLState {
   return result
 }
 
-// Sync current state to URL using replaceState (no history pollution)
-export function syncToURL(state: {
-  weights: Record<string, number>
-  startMonth: string
-  endMonth: string
-  region: string
-  activeTab: string
-  comparisonIds: string[]
-  comparisonRegions: string[]
-}) {
-  const current = new URLSearchParams(window.location.search)
+// Serialize URLState into URL search params. Always preserves embed=1 flag
+// because it is a routing toggle owned by the host page, not the calculator.
+function serializeURLState(state: URLState): URLSearchParams {
   const params = new URLSearchParams()
 
-  // Only add weights if they differ from official
-  const weightsArr = CATEGORIES.map(cat => state.weights[cat.code] ?? 0)
-  const isOfficial = CATEGORIES.every(
-    cat => Math.abs((state.weights[cat.code] ?? 0) - (OFFICIAL_WEIGHTS[cat.code] ?? 0)) < 0.01
-  )
-  if (!isOfficial) {
+  if (state.weights) {
+    const weightsArr = CATEGORIES.map(cat => state.weights![cat.code] ?? 0)
     const compactWeights = encodeCompactWeights(state.weights)
     if (compactWeights) {
       params.set(COMPACT_WEIGHTS_PARAM, compactWeights)
@@ -164,41 +158,78 @@ export function syncToURL(state: {
     }
   }
 
-  params.set('s', state.startMonth)
-  params.set('e', state.endMonth)
+  if (state.startMonth) params.set('s', state.startMonth)
+  if (state.endMonth) params.set('e', state.endMonth)
+  if (state.region) params.set('r', state.region)
+  if (state.activeTab) params.set('t', state.activeTab)
 
-  if (state.region !== 'nacional') {
-    params.set('r', state.region)
-  }
-
-  if (state.activeTab !== 'evolucion') {
-    params.set('t', state.activeTab)
-  }
-
-  if (state.comparisonIds.length > 0) {
+  if (state.comparisonIds && state.comparisonIds.length > 0) {
     params.set('c', state.comparisonIds.join(','))
   }
-
-  if (state.comparisonRegions.length > 0) {
+  if (state.comparisonRegions && state.comparisonRegions.length > 0) {
     params.set('cr', state.comparisonRegions.join(','))
   }
+  if (state.rubricasSeriesIds && state.rubricasSeriesIds.length > 0) {
+    params.set('rs', state.rubricasSeriesIds.join(','))
+  }
 
-  // Keep embed mode stable while syncing calculator params.
+  if (state.theme) params.set('theme', state.theme)
+
+  // embed is a routing toggle preserved verbatim from the current URL.
+  const current = new URLSearchParams(window.location.search)
   if (current.get('embed') === '1') {
     params.set('embed', '1')
   }
 
-  // Keep color theme stable while syncing calculator params.
-  const theme = current.get('theme')
-  if (theme) {
-    params.set('theme', theme)
-  }
+  return params
+}
 
-  // Preserve rubricas explorer state while syncing calculator params.
-  const rs = current.get('rs')
-  if (rs) params.set('rs', rs)
-
+// Write a complete URLState to the URL via history.replaceState.
+export function writeURLState(state: URLState): void {
+  const params = serializeURLState(state)
   const search = params.toString()
-  const url = search ? `${window.location.pathname}?${search}` : window.location.pathname
+  const url = search
+    ? `${window.location.pathname}?${search}`
+    : window.location.pathname
   window.history.replaceState(null, '', url)
+}
+
+// Merge `partial` with the current parsed URLState and write the result.
+// Keys present in `partial` (even with explicit `undefined`) replace the
+// parsed value. Keys absent from `partial` are preserved from the URL.
+export function patchURLState(partial: Partial<URLState>): void {
+  const next: URLState = { ...parseURLState(), ...partial }
+  writeURLState(next)
+}
+
+// Sync calculator state to URL using `replaceState`. Translates the structured
+// calculator state into a URLState patch (applying default-omission rules:
+// drop weights when official, drop region when nacional, etc.) and merges with
+// other params (rs, theme, embed) preserved by `patchURLState`.
+export function syncToURL(state: {
+  weights: Record<string, number>
+  startMonth: string
+  endMonth: string
+  region: string
+  activeTab: string
+  comparisonIds: string[]
+  comparisonRegions: string[]
+}): void {
+  const isOfficial = CATEGORIES.every(
+    cat => Math.abs((state.weights[cat.code] ?? 0) - (OFFICIAL_WEIGHTS[cat.code] ?? 0)) < 0.01
+  )
+
+  const isValidTab = (VALID_TABS as readonly string[]).includes(state.activeTab)
+  const tab = isValidTab ? (state.activeTab as ValidTab) : 'evolucion'
+
+  patchURLState({
+    weights: isOfficial ? undefined : state.weights,
+    startMonth: state.startMonth,
+    endMonth: state.endMonth,
+    region: state.region !== 'nacional' ? state.region : undefined,
+    activeTab: tab !== 'evolucion' ? tab : undefined,
+    comparisonIds: state.comparisonIds.length > 0 ? state.comparisonIds : undefined,
+    comparisonRegions:
+      state.comparisonRegions.length > 0 ? state.comparisonRegions : undefined,
+  })
 }

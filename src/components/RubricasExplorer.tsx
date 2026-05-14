@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import {
   CartesianGrid,
   Line,
@@ -10,8 +10,7 @@ import {
   YAxis,
 } from "recharts";
 import { X } from "lucide-react";
-import rubricasDataUrl from "@/data/ipc-rubricas.json?url";
-import type { RubricasData, RubricaSeries } from "@/data/rubricasTypes";
+import type { RubricaSeries } from "@/data/rubricasTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatMonth } from "@/utils/formatMonth";
@@ -19,8 +18,11 @@ import {
   buildAccumulatedSeries,
   computeGeneralBenchmark,
 } from "@/utils/accumulatedInflation";
-
-const MAX_SELECTED_SERIES = 6;
+import { useRubricasData } from "@/rubricas/useRubricasData";
+import {
+  MAX_SELECTED_SERIES,
+  useRubricasSelection,
+} from "@/rubricas/useRubricasSelection";
 
 const COLOR_PALETTE = [
   "hsl(var(--rubricas-1))",
@@ -46,19 +48,6 @@ const MONTH_NAMES_SHORT = [
   "Dic",
 ];
 
-interface RubricasURLState {
-  selectedSeriesIds: string[];
-}
-
-function parseRubricasURLState(): RubricasURLState {
-  const params = new URLSearchParams(window.location.search);
-  const rs = params.get("rs");
-
-  return {
-    selectedSeriesIds: rs ? rs.split(",").filter(Boolean) : [],
-  };
-}
-
 function formatTick(month: string): string {
   const [year, m] = month.split("-");
   return `${MONTH_NAMES_SHORT[parseInt(m, 10) - 1]} ${year.slice(2)}`;
@@ -76,67 +65,6 @@ function colorFromSeriesId(seriesId: string): string {
   return COLOR_PALETTE[Math.abs(hash) % COLOR_PALETTE.length];
 }
 
-function categoryCodeFromRubricaCode(rubricaCode: string): string | null {
-  const match = rubricaCode.match(/^(\d{2})/);
-  if (!match) return null;
-
-  // ECOICOP v2 split uses 13.x for part of "Otros bienes y servicios".
-  // User weights keep the legacy 12 buckets, so we fold 13 -> 12.
-  if (match[1] === "13") return "12";
-
-  return match[1];
-}
-
-function getSuggestedSelection(
-  series: RubricaSeries[],
-  startMonth: string,
-  endMonth: string,
-  userWeights: Record<string, number>,
-): string[] {
-  if (!startMonth || !endMonth || startMonth > endMonth) {
-    return [];
-  }
-
-  const ranked = series
-    .map((item) => ({
-      id: item.id,
-      categoryCode: categoryCodeFromRubricaCode(item.codigo),
-      endAccumulated: computeGeneralBenchmark(item.points, startMonth, endMonth),
-    }))
-    .filter((item) => item.endAccumulated != null)
-    .sort(
-      (a, b) =>
-        Math.abs(b.endAccumulated ?? 0) - Math.abs(a.endAccumulated ?? 0),
-    );
-
-  const topWeightedCategoryCodes = Object.entries(userWeights)
-    .filter(([, weight]) => Number.isFinite(weight) && weight > 0)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 2)
-    .map(([code]) => code);
-
-  const selectedIds: string[] = [];
-
-  for (const categoryCode of topWeightedCategoryCodes) {
-    const bestInCategory = ranked.find(
-      (item) =>
-        item.categoryCode === categoryCode && !selectedIds.includes(item.id),
-    );
-    if (bestInCategory) {
-      selectedIds.push(bestInCategory.id);
-    }
-  }
-
-  for (const item of ranked) {
-    if (selectedIds.length >= 4) break;
-    if (!selectedIds.includes(item.id)) {
-      selectedIds.push(item.id);
-    }
-  }
-
-  return selectedIds;
-}
-
 interface RubricasExplorerProps {
   startMonth: string;
   endMonth: string;
@@ -148,44 +76,11 @@ export default function RubricasExplorer({
   endMonth,
   userWeights,
 }: RubricasExplorerProps) {
-  const [rubricasData, setRubricasData] = useState<RubricasData | null>(null);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const { data: rubricasData, error: loadError } = useRubricasData();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSeriesIds, setSelectedSeriesIds] = useState<string[]>([]);
-  const [selectionNotice, setSelectionNotice] = useState<string>("");
   const [isWideViewport, setIsWideViewport] = useState(
     () => window.innerWidth >= 1024,
   );
-  const initializedRef = useRef(false);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadData() {
-      try {
-        const response = await fetch(rubricasDataUrl);
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        const parsed = (await response.json()) as RubricasData;
-        if (!cancelled) {
-          setRubricasData(parsed);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setLoadError(
-            error instanceof Error ? error.message : "Error desconocido",
-          );
-        }
-      }
-    }
-
-    loadData();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     const onResize = () => {
@@ -255,55 +150,21 @@ export default function RubricasExplorer({
     [classSeries],
   );
 
-  useEffect(() => {
-    if (!rubricasData || timeline.length === 0 || initializedRef.current)
-      return;
-
-    const urlState = parseRubricasURLState();
-    const validIds = new Set(classSeries.map((item) => item.id));
-
-    const parsedSelection = urlState.selectedSeriesIds
-      .filter((id) => validIds.has(id))
-      .slice(0, MAX_SELECTED_SERIES);
-
-    setSelectedSeriesIds(
-      parsedSelection.length > 0
-        ? parsedSelection
-        : getSuggestedSelection(
-            classSeries,
-            periodFromMonth,
-            periodToMonth,
-            userWeights,
-          ),
-    );
-
-    initializedRef.current = true;
-  }, [
+  const {
+    selectedSeriesIds,
+    selectionNotice,
+    canAddMore,
+    limitMessage,
+    toggle: handleToggleSeries,
+    clear: clearSelection,
+    reset: resetSelection,
+  } = useRubricasSelection({
     classSeries,
-    periodFromMonth,
-    periodToMonth,
-    rubricasData,
-    timeline,
+    startMonth: periodFromMonth,
+    endMonth: periodToMonth,
     userWeights,
-  ]);
-
-  useEffect(() => {
-    if (!rubricasData) return;
-
-    const params = new URLSearchParams(window.location.search);
-
-    if (selectedSeriesIds.length > 0) {
-      params.set("rs", selectedSeriesIds.join(","));
-    } else {
-      params.delete("rs");
-    }
-
-    const search = params.toString();
-    const nextURL = search
-      ? `${window.location.pathname}?${search}`
-      : window.location.pathname;
-    window.history.replaceState(null, "", nextURL);
-  }, [rubricasData, selectedSeriesIds]);
+    ready: rubricasData !== null && timeline.length > 0,
+  });
 
   const searchId = useId();
   const listId = useId();
@@ -449,45 +310,6 @@ export default function RubricasExplorer({
       .filter((item) => item.value != null)
       .sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
   }, [seriesLines, visibleMonths]);
-
-  const canAddMore = selectedSeriesIds.length < MAX_SELECTED_SERIES;
-  const limitMessage = !canAddMore
-    ? `Límite alcanzado: máximo ${MAX_SELECTED_SERIES} rúbricas.`
-    : "";
-
-  const handleToggleSeries = (seriesId: string) => {
-    setSelectedSeriesIds((prev) => {
-      if (prev.includes(seriesId)) {
-        setSelectionNotice("");
-        return prev.filter((id) => id !== seriesId);
-      }
-      if (prev.length >= MAX_SELECTED_SERIES) {
-        setSelectionNotice(
-          `Límite alcanzado: máximo ${MAX_SELECTED_SERIES} rúbricas.`,
-        );
-        return prev;
-      }
-      setSelectionNotice("");
-      return [...prev, seriesId];
-    });
-  };
-
-  const clearSelection = () => {
-    setSelectionNotice("");
-    setSelectedSeriesIds([]);
-  };
-
-  const resetSelection = () => {
-    setSelectionNotice("");
-    setSelectedSeriesIds(
-      getSuggestedSelection(
-        classSeries,
-        periodFromMonth,
-        periodToMonth,
-        userWeights,
-      ),
-    );
-  };
 
   if (loadError) {
     return (

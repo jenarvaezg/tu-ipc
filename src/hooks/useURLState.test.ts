@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { parseURLState, syncToURL } from './useURLState'
+import {
+  parseURLState,
+  patchURLState,
+  syncToURL,
+  writeURLState,
+} from './useURLState'
 import { CATEGORIES, OFFICIAL_WEIGHTS } from '@/data/categories'
 
 function setSearch(search: string) {
@@ -242,5 +247,116 @@ describe('syncToURL', () => {
     expect(lastURL).toContain('rs=764%3A304149%2C764%3A304150')
     expect(lastURL).not.toContain('rf=')
     expect(lastURL).not.toContain('re=')
+  })
+})
+
+describe('patchURLState', () => {
+  let lastURL: string | undefined
+
+  beforeEach(() => {
+    lastURL = undefined
+    Object.defineProperty(window, 'location', {
+      value: { ...window.location, pathname: '/', search: '' },
+      writable: true,
+    })
+    window.history.replaceState = (
+      _data: unknown,
+      _title: string,
+      url?: string | URL | null,
+    ) => {
+      lastURL = url as string
+    }
+  })
+
+  function setSearch(search: string) {
+    Object.defineProperty(window, 'location', {
+      value: { ...window.location, search, pathname: '/' },
+      writable: true,
+    })
+  }
+
+  it('writes rubricas series ids when patched', () => {
+    patchURLState({ rubricasSeriesIds: ['764:304149', '764:304150'] })
+    expect(lastURL).toContain('rs=764%3A304149%2C764%3A304150')
+  })
+
+  it('removes rubricas series ids when patched to undefined', () => {
+    setSearch('?rs=764:304149')
+    patchURLState({ rubricasSeriesIds: undefined })
+    expect(lastURL).not.toContain('rs=')
+  })
+
+  it('removes rubricas series ids when patched to empty array', () => {
+    setSearch('?rs=764:304149')
+    patchURLState({ rubricasSeriesIds: [] })
+    expect(lastURL).not.toContain('rs=')
+  })
+
+  it('preserves unrelated calculator params when only rs is patched', () => {
+    setSearch('?s=2024-01&e=2025-01&r=madrid&t=desglose&c=joven&cr=cataluna')
+    patchURLState({ rubricasSeriesIds: ['764:304149'] })
+    expect(lastURL).toContain('rs=764%3A304149')
+    expect(lastURL).toContain('s=2024-01')
+    expect(lastURL).toContain('e=2025-01')
+    expect(lastURL).toContain('r=madrid')
+    expect(lastURL).toContain('t=desglose')
+    expect(lastURL).toContain('c=joven')
+    expect(lastURL).toContain('cr=cataluna')
+  })
+
+  it('preserves embed=1 toggle when patching', () => {
+    setSearch('?embed=1&t=rubricas')
+    patchURLState({ rubricasSeriesIds: ['764:304149'] })
+    expect(lastURL).toContain('embed=1')
+    expect(lastURL).toContain('t=rubricas')
+  })
+
+  it('preserves theme when patching', () => {
+    setSearch('?theme=hesperides')
+    patchURLState({ rubricasSeriesIds: ['764:304149'] })
+    expect(lastURL).toContain('theme=hesperides')
+  })
+
+  it('strips unknown params', () => {
+    setSearch('?rf=2004-01&re=2024-12&rs=764:304149')
+    patchURLState({ activeTab: 'rubricas' })
+    expect(lastURL).toContain('t=rubricas')
+    expect(lastURL).toContain('rs=764%3A304149')
+    expect(lastURL).not.toContain('rf=')
+    expect(lastURL).not.toContain('re=')
+  })
+})
+
+describe('writeURLState', () => {
+  let lastURL: string | undefined
+
+  beforeEach(() => {
+    lastURL = undefined
+    Object.defineProperty(window, 'location', {
+      value: { ...window.location, pathname: '/', search: '' },
+      writable: true,
+    })
+    window.history.replaceState = (
+      _data: unknown,
+      _title: string,
+      url?: string | URL | null,
+    ) => {
+      lastURL = url as string
+    }
+  })
+
+  it('writes only the fields present in the URLState', () => {
+    writeURLState({ startMonth: '2024-01', endMonth: '2025-01' })
+    expect(lastURL).toContain('s=2024-01')
+    expect(lastURL).toContain('e=2025-01')
+    expect(lastURL).not.toContain('w=')
+    expect(lastURL).not.toContain('r=')
+    expect(lastURL).not.toContain('t=')
+    expect(lastURL).not.toContain('rs=')
+  })
+
+  it('produces a bare path when state is empty', () => {
+    writeURLState({})
+    expect(lastURL).toBe('/')
   })
 })

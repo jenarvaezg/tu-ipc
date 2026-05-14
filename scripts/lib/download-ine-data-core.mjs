@@ -75,26 +75,6 @@ export function assertArrayResponse(data, label) {
   return data
 }
 
-export function combineSplitCategory12(newData, weightNew12, weightNew13) {
-  for (const regionCode of Object.keys(newData)) {
-    const rd = newData[regionCode]
-    if (rd['12a'] && rd['12b']) {
-      const combined = {}
-      const allKeys = new Set([...Object.keys(rd['12a']), ...Object.keys(rd['12b'])])
-      for (const m of allKeys) {
-        const v12a = rd['12a'][m]
-        const v12b = rd['12b'][m]
-        if (v12a != null && v12b != null) {
-          combined[m] = (weightNew12 * v12a + weightNew13 * v12b) / (weightNew12 + weightNew13)
-        }
-      }
-      rd['12'] = combined
-      delete rd['12a']
-      delete rd['12b']
-    }
-  }
-}
-
 export function collectSortedNewMonths(newData) {
   const newMonths = new Set()
   for (const rd of Object.values(newData)) {

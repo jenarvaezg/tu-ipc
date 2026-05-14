@@ -3,11 +3,11 @@ import {
   assertArrayResponse,
   chainLinkRegions,
   collectSortedNewMonths,
-  combineSplitCategory12,
   matchCategory,
   parseSeriesData,
   resolveRegionCode,
 } from './lib/download-ine-data-core.mjs'
+import { combineV2SplitCategory12 } from '../src/utils/ecoicop.mjs'
 import { fetchJsonWithRetry } from './lib/ine-fetch.mjs'
 import { writeJsonPreservingMetadata } from './lib/stable-json-output.mjs'
 
@@ -18,17 +18,10 @@ const RECENT_DATE_RANGE = '20091201:20271231'
 // Table 50913: IPC Base 2021, ECOICOP v1 (12 categories), historical monthly range (2002+)
 const OLD_TABLE = '50913'
 
-// Table 76136: IPC Base 2025, ECOICOP v2 (13 categories), Dec 2024 onwards
-// Used for chain-linking months beyond the old table's range.
-// ECOICOP v2 splits old category 12 into:
-//   12: "Seguros y servicios financieros"
-//   13: "Cuidado personal, protección social, y bienes y servicios diversos"
+// Table 76136: IPC Base 2025, ECOICOP v2 (13 categories), Dec 2024 onwards.
+// Used for chain-linking months beyond the old table's range. The v1↔v2 fold
+// (categories 12 + 13 → v1 category 12) lives in src/utils/ecoicop.mjs.
 const NEW_TABLE = '76136'
-
-// Approximate IPC weights for the two subcategories of old cat 12 (from IPC 2025 base 2021).
-// Used to combine new-12 + new-13 into a synthetic old-12 index before chain-linking.
-const WEIGHT_NEW_12 = 3.7 // Seguros y servicios financieros
-const WEIGHT_NEW_13 = 4.0 // Cuidado personal, protección social...
 
 const REGION_DISPLAY_NAMES = {
   'nacional': 'Total Nacional',
@@ -172,7 +165,7 @@ async function main() {
     newData[regionCode][cat.code] = data
   }
 
-  combineSplitCategory12(newData, WEIGHT_NEW_12, WEIGHT_NEW_13)
+  combineV2SplitCategory12(newData)
   const sortedNewMonths = collectSortedNewMonths(newData)
   console.log(`  Rango nuevo: ${sortedNewMonths[0]} → ${sortedNewMonths[sortedNewMonths.length - 1]}`)
 

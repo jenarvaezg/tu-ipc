@@ -10,14 +10,11 @@ import {
 import ipcDataRaw from "@/data/ipc-data.json";
 import type { IPCData } from "@/data/types";
 import { Card, CardContent } from "@/components/ui/card";
-import { CATEGORIES, OFFICIAL_WEIGHTS } from "@/data/categories";
-import { useIPCCalculator, computeYoY } from "@/hooks/useIPCCalculator";
-import { parseURLState, syncToURL } from "@/hooks/useURLState";
-import { useWeights } from "@/hooks/useWeights";
-import { useComparisons } from "@/hooks/useComparisons";
+import { parseURLState } from "@/hooks/useURLState";
 import { useDocumentMeta } from "@/hooks/useDocumentMeta";
 import { useTheme } from "@/hooks/useTheme";
-import { debounce } from "@/utils/debounce";
+import { useShellNavigation } from "@/router/shellRouter";
+import { useCalculadora } from "@/calculadora/useCalculadora";
 import {
   getAnalyticsConsent,
   grantAnalyticsConsent,
@@ -40,6 +37,9 @@ import ShareSuggestion from "@/components/ShareSuggestion";
 import Footer from "@/components/Footer";
 import FilterSidebar from "@/components/FilterSidebar";
 import LandingPage from "@/components/LandingPage";
+import LazyFallback from "@/components/LazyFallback";
+import EmbedRubricasShell from "@/shells/EmbedRubricasShell";
+import EmbedCalcShell from "@/shells/EmbedCalcShell";
 
 const EvolutionChart = lazy(() => import("@/components/EvolutionChart"));
 const RubricasExplorer = lazy(() => import("@/components/RubricasExplorer"));
@@ -52,79 +52,29 @@ const ipcData = ipcDataRaw as IPCData;
 
 const BASE = import.meta.env.BASE_URL; // configurable via BASE_URL, '/' by default
 
-function getSubRoute(): string {
-  const path = window.location.pathname;
-  const sub = path.startsWith(BASE) ? path.slice(BASE.length) : path.slice(1);
-  return sub.replace(/\/$/, "");
-}
-
-function getIsEmbed(): boolean {
-  return new URLSearchParams(window.location.search).get("embed") === "1";
-}
-
-const STORAGE_KEY_REGION = "tu-ipc-region";
-
-function LazyFallback() {
-  return (
-    <div className="mb-6 rounded-xl border border-border bg-card p-6 animate-pulse">
-      <div className="mb-4 h-5 w-40 rounded bg-muted" />
-      <div className="h-56 rounded bg-muted/70" />
-      <span className="sr-only">Cargando contenido</span>
-    </div>
-  );
-}
-
-function loadRegion(): string {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY_REGION);
-    if (saved && ipcData.regions[saved]) return saved;
-  } catch {
-    /* ignore */
-  }
-  return "nacional";
-}
-
-function saveRegion(region: string) {
-  localStorage.setItem(STORAGE_KEY_REGION, region);
-}
-
 export default function App() {
   useTheme();
-  const [isEmbed, setIsEmbed] = useState(getIsEmbed);
 
   // URL params take priority over localStorage
   const urlState = useMemo(() => parseURLState(), []);
 
-  const initialRoute = useMemo(() => getSubRoute(), []);
+  const {
+    shell,
+    navigateToCalculator,
+    navigateToMethodology: routerNavigateToMethodology,
+    navigateToPrivacy: routerNavigateToPrivacy,
+    goBack,
+  } = useShellNavigation(BASE);
 
-  // Skip landing if URL has calculator params or we're on a sub-route
-  const hasCalcParams = useMemo(() => {
-    return (
-      urlState.weights != null ||
-      urlState.comparisonIds != null ||
-      urlState.comparisonRegions != null ||
-      urlState.startMonth != null ||
-      urlState.endMonth != null ||
-      urlState.region != null ||
-      urlState.activeTab != null
-    );
-  }, [urlState]);
-
-  const [showLanding, setShowLanding] = useState(
-    () =>
-      !isEmbed &&
-      initialRoute !== "metodologia" &&
-      initialRoute !== "privacidad" &&
-      !hasCalcParams,
-  );
-  const [showMethodology, setShowMethodology] = useState(
-    () => !isEmbed && initialRoute === "metodologia",
-  );
-  const [showPrivacy, setShowPrivacy] = useState(
-    () => !isEmbed && initialRoute === "privacidad",
-  );
   const [analyticsConsent, setAnalyticsConsentStatus] =
     useState<AnalyticsConsent | null>(() => getAnalyticsConsent());
+
+  const months = ipcData.months;
+
+  const syncableShell =
+    shell.kind === "calculadora" ||
+    shell.kind === "embed-calc" ||
+    shell.kind === "embed-rubricas";
 
   const {
     weights,
@@ -134,25 +84,26 @@ export default function App() {
     handleToggleLock,
     handleReset,
     handlePresetSelect,
-  } = useWeights(urlState.weights);
-
-  const [region, setRegion] = useState(() =>
-    urlState.region && ipcData.regions[urlState.region]
-      ? urlState.region
-      : loadRegion(),
-  );
-  const months = ipcData.months;
-  const [startMonth, setStartMonth] = useState(() =>
-    urlState.startMonth && months.includes(urlState.startMonth)
-      ? urlState.startMonth
-      : months[Math.max(0, months.length - 13)] || months[0],
-  );
-  const [endMonth, setEndMonth] = useState(() =>
-    urlState.endMonth && months.includes(urlState.endMonth)
-      ? urlState.endMonth
-      : months[months.length - 1],
-  );
-  const [activeTab, setActiveTab] = useState(urlState.activeTab || "evolucion");
+    region,
+    setRegion,
+    startMonth,
+    setStartMonth,
+    endMonth,
+    setEndMonth,
+    activeTab,
+    setActiveTab,
+    comparisonIds,
+    comparisonRegions,
+    allComparisons,
+    handleToggleComparison,
+    handleClearComparisons,
+    handleToggleRegionComparison,
+    handleClearRegionComparisons,
+    result,
+    yoyEvolution,
+    categoryVariations,
+    topWeightDifferences,
+  } = useCalculadora({ ipcData, urlState, syncEnabled: syncableShell });
 
   const chartRef = useRef<HTMLDivElement>(null);
   const lastTrackedPageRef = useRef("");
@@ -177,132 +128,13 @@ export default function App() {
     handleGrantAnalyticsConsent("footer_enable");
   }, [handleGrantAnalyticsConsent]);
 
-  const regionData = ipcData.regions[region];
-  const regionCategories = regionData?.categories ?? {};
-  const generalIndex = regionCategories["00"];
-
-  const rawResult = useIPCCalculator(
-    regionCategories,
-    months,
-    weights,
-    startMonth,
-    endMonth,
-    generalIndex,
+  const handleRegionChange = useCallback(
+    (code: string) => {
+      trackEvent("region_change", { region: code });
+      setRegion(code);
+    },
+    [setRegion],
   );
-
-  const rawYoyEvolution = useMemo(
-    () =>
-      computeYoY(
-        regionCategories,
-        months,
-        weights,
-        startMonth,
-        endMonth,
-        generalIndex,
-      ),
-    [regionCategories, months, weights, startMonth, endMonth, generalIndex],
-  );
-
-  // When weights are official, personal = official (avoid spurious differences from weighted-sum approximation vs INE general index)
-  const result = useMemo(() => {
-    if (isCustom) return rawResult;
-    return {
-      ...rawResult,
-      personalIPC: rawResult.officialIPC,
-      difference: 0,
-      evolution: rawResult.evolution.map((d) => ({
-        ...d,
-        personal: d.official,
-      })),
-    };
-  }, [rawResult, isCustom]);
-
-  const yoyEvolution = useMemo(() => {
-    if (isCustom) return rawYoyEvolution;
-    return rawYoyEvolution.map((d) => ({ ...d, personal: d.official }));
-  }, [rawYoyEvolution, isCustom]);
-
-  const {
-    comparisonIds,
-    comparisonRegions,
-    allComparisons,
-    handleToggleComparison,
-    handleClearComparisons,
-    handleToggleRegionComparison,
-    handleClearRegionComparisons,
-  } = useComparisons(
-    regionCategories,
-    regionData?.name,
-    months,
-    weights,
-    startMonth,
-    endMonth,
-    urlState.comparisonIds,
-    urlState.comparisonRegions,
-  );
-
-  const handleRegionChange = useCallback((code: string) => {
-    trackEvent("region_change", { region: code });
-    setRegion(code);
-    saveRegion(code);
-  }, []);
-
-  const categoryVariations = useMemo(() => {
-    const vars: Record<string, number> = {};
-    for (const item of result.breakdown) {
-      vars[item.code] = item.variation;
-    }
-    return vars;
-  }, [result.breakdown]);
-  const topWeightDifferences = useMemo(() => {
-    return CATEGORIES.map((cat) => {
-      const current = weights[cat.code] ?? 0;
-      const official = OFFICIAL_WEIGHTS[cat.code] ?? 0;
-      const diff = current - official;
-      return {
-        code: cat.code,
-        name: cat.name,
-        icon: cat.icon,
-        diff,
-      };
-    })
-      .filter((item) => Math.abs(item.diff) >= 0.1)
-      .sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff))
-      .slice(0, 3);
-  }, [weights]);
-
-  // Debounced syncToURL
-  const debouncedSyncRef = useRef(debounce(syncToURL, 300));
-
-  useEffect(() => {
-    return () => debouncedSyncRef.current.cancel();
-  }, []);
-
-  // Sync state to URL (only when calculator is visible)
-  useEffect(() => {
-    if (!showLanding && !showMethodology && !showPrivacy) {
-      debouncedSyncRef.current({
-        weights,
-        startMonth,
-        endMonth,
-        region,
-        activeTab,
-        comparisonIds,
-        comparisonRegions,
-      });
-    }
-  }, [
-    showLanding,
-    showMethodology,
-    showPrivacy,
-    weights,
-    startMonth,
-    endMonth,
-    region,
-    activeTab,
-    comparisonIds,
-    comparisonRegions,
-  ]);
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -312,167 +144,104 @@ export default function App() {
       if (quizWeights) {
         handlePresetSelect(quizWeights);
       }
-      window.history.pushState({ page: "calculator" }, "", BASE);
-      setShowLanding(false);
+      navigateToCalculator();
     },
-    [handlePresetSelect],
+    [handlePresetSelect, navigateToCalculator],
   );
 
   const navigateToMethodology = useCallback(() => {
     trackEvent("methodology_view");
-    window.history.pushState({ page: "methodology" }, "", BASE + "metodologia");
-    setShowMethodology(true);
-    setShowPrivacy(false);
-  }, []);
+    routerNavigateToMethodology();
+  }, [routerNavigateToMethodology]);
 
   const navigateToPrivacy = useCallback(() => {
     trackEvent("privacy_view");
-    window.history.pushState({ page: "privacy" }, "", BASE + "privacidad");
-    setShowPrivacy(true);
-    setShowMethodology(false);
-  }, []);
-
-  // Browser back/forward: derive page from URL
-  useEffect(() => {
-    function handlePopState(e: PopStateEvent) {
-      const embedMode = getIsEmbed();
-      setIsEmbed(embedMode);
-      if (embedMode) {
-        setShowMethodology(false);
-        setShowPrivacy(false);
-        setShowLanding(false);
-        return;
-      }
-
-      const route = getSubRoute();
-      if (route === "metodologia") {
-        setShowMethodology(true);
-        setShowPrivacy(false);
-        setShowLanding(false);
-      } else if (route === "privacidad") {
-        setShowPrivacy(true);
-        setShowMethodology(false);
-        setShowLanding(false);
-      } else {
-        setShowMethodology(false);
-        setShowPrivacy(false);
-        // Check if we should show calculator or landing
-        if (e.state?.page === "calculator") {
-          setShowLanding(false);
-        } else {
-          const params = parseURLState();
-          const hasParams =
-            params.weights != null ||
-            params.startMonth != null ||
-            params.endMonth != null ||
-            params.region != null ||
-            params.activeTab != null ||
-            params.comparisonIds != null ||
-            params.comparisonRegions != null;
-          setShowLanding(!hasParams && !embedMode);
-        }
-      }
-    }
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
+    routerNavigateToPrivacy();
+  }, [routerNavigateToPrivacy]);
 
   useDocumentMeta(
-    showMethodology
+    shell.kind === "methodology"
       ? "Metodología — Tu IPC Personal"
-      : showPrivacy
+      : shell.kind === "privacy"
         ? "Privacidad — Tu IPC Personal"
         : "Tu IPC Personal — Estima tu inflación en España",
-    showMethodology
+    shell.kind === "methodology"
       ? "Cómo se calcula tu inflación personal: fuente de datos del INE, categorías ECOICOP, encadenamiento de bases y fórmulas."
-      : showPrivacy
+      : shell.kind === "privacy"
         ? "Política de privacidad de Tu IPC Personal: analítica opcional con consentimiento, datos locales y control del usuario."
         : "¿Cuál es mi IPC? Calcula tu inflación personal ajustando tus gastos reales y compara con el IPC oficial del INE. Datos actualizados por comunidad autónoma.",
   );
 
   useEffect(() => {
     let pagePath = "/landing";
-    if (isEmbed) {
-      pagePath =
-        activeTab === "rubricas" ? "/embed/rubricas" : "/embed/calculadora";
-    } else if (showMethodology) {
-      pagePath = "/metodologia";
-    } else if (showPrivacy) {
-      pagePath = "/privacidad";
-    } else if (!showLanding) {
-      pagePath = `/calculadora/${activeTab}`;
+    switch (shell.kind) {
+      case "embed-rubricas":
+        pagePath = "/embed/rubricas";
+        break;
+      case "embed-calc":
+        pagePath = "/embed/calculadora";
+        break;
+      case "methodology":
+        pagePath = "/metodologia";
+        break;
+      case "privacy":
+        pagePath = "/privacidad";
+        break;
+      case "calculadora":
+        pagePath = `/calculadora/${activeTab}`;
+        break;
+      case "landing":
+        pagePath = "/landing";
+        break;
     }
 
     if (lastTrackedPageRef.current === pagePath) return;
     lastTrackedPageRef.current = pagePath;
     trackPageView(pagePath);
-  }, [isEmbed, showMethodology, showPrivacy, showLanding, activeTab]);
+  }, [shell, activeTab]);
 
-  if (isEmbed) {
-    if (activeTab === "rubricas") {
-      return (
-        <main className="max-w-6xl mx-auto px-4 py-4">
-          <Suspense fallback={<LazyFallback />}>
-            <RubricasExplorer
-              startMonth={startMonth}
-              endMonth={endMonth}
-              userWeights={weights}
-            />
-          </Suspense>
-          <p className="text-xs text-muted-foreground text-center mt-2">
-            Datos del INE ·{" "}
-            <a href="https://tu-ipc.es" className="underline">
-              tu-ipc.es
-            </a>
-          </p>
-        </main>
-      );
-    }
-
+  if (shell.kind === "embed-rubricas") {
     return (
-      <main className="max-w-4xl mx-auto px-4 py-4">
-        <KPICards
-          personalIPC={result.personalIPC}
-          officialIPC={result.officialIPC}
-          difference={result.difference}
-          isCustom={isCustom}
-          startMonth={startMonth}
-          endMonth={endMonth}
-        />
-        <Suspense fallback={<LazyFallback />}>
-          <EvolutionChart data={result.evolution} isCustom={isCustom} />
-        </Suspense>
-        <p className="text-xs text-muted-foreground text-center mt-2">
-          Datos del INE ·{" "}
-          <a href="https://tu-ipc.es" className="underline">
-            tu-ipc.es
-          </a>
-        </p>
-      </main>
+      <EmbedRubricasShell
+        startMonth={startMonth}
+        endMonth={endMonth}
+        userWeights={weights}
+      />
     );
   }
 
-  if (showMethodology) {
+  if (shell.kind === "embed-calc") {
+    return (
+      <EmbedCalcShell
+        result={result}
+        isCustom={isCustom}
+        startMonth={startMonth}
+        endMonth={endMonth}
+      />
+    );
+  }
+
+  if (shell.kind === "methodology") {
     return (
       <main>
         <Suspense fallback={<LazyFallback />}>
-          <Methodology onBack={() => window.history.back()} />
+          <Methodology onBack={goBack} />
         </Suspense>
       </main>
     );
   }
 
-  if (showPrivacy) {
+  if (shell.kind === "privacy") {
     return (
       <main>
         <Suspense fallback={<LazyFallback />}>
-          <PrivacyPolicy onBack={() => window.history.back()} />
+          <PrivacyPolicy onBack={goBack} />
         </Suspense>
       </main>
     );
   }
 
-  if (showLanding) {
+  if (shell.kind === "landing") {
     return (
       <main>
         <LandingPage

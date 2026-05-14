@@ -64,7 +64,7 @@ test('embed de rúbricas renderiza sin sidebar y sin overflow', async ({ page })
   await page.goto('/?embed=1&t=rubricas')
 
   await expect(page.getByText('Selector de rúbricas')).toBeVisible()
-  await expect(page.getByText('Inflación acumulada por rúbricas desde enero 2002')).toBeVisible()
+  await expect(page.getByText('Inflación acumulada por rúbricas en el periodo seleccionado')).toBeVisible()
   await expect(page.getByText('Comunidad Autónoma')).toHaveCount(0)
 
   const diagnostics = await getOverflowDiagnostics(page)

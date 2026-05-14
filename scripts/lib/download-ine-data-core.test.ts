@@ -2,7 +2,6 @@ import {
   assertArrayResponse,
   chainLinkRegions,
   collectSortedNewMonths,
-  combineSplitCategory12,
   matchCategory,
   parseSeriesData,
   resolveRegionCode,
@@ -60,35 +59,6 @@ describe('download-ine-data core', () => {
   it('resolveRegionCode trims whitespace and returns null for unknown labels', () => {
     expect(resolveRegionCode(' Andalucía ')).toBe('andalucia')
     expect(resolveRegionCode('España')).toBeNull()
-  })
-
-  it('combineSplitCategory12 builds synthetic 12 and removes split categories', () => {
-    const newData = {
-      nacional: {
-        '12a': { '2025-11': 100, '2025-12': 110 },
-        '12b': { '2025-11': 200, '2025-12': 130 },
-      },
-    }
-
-    combineSplitCategory12(newData, 3.7, 4.0)
-
-    expect(newData.nacional['12a']).toBeUndefined()
-    expect(newData.nacional['12b']).toBeUndefined()
-    expect(newData.nacional['12']['2025-11']).toBeCloseTo(151.948, 3)
-    expect(newData.nacional['12']['2025-12']).toBeCloseTo(120.39, 2)
-  })
-
-  it('combineSplitCategory12 leaves regions untouched when split data is incomplete', () => {
-    const newData = {
-      nacional: {
-        '12a': { '2025-11': 100 },
-      },
-    }
-
-    combineSplitCategory12(newData, 3.7, 4.0)
-
-    expect(newData.nacional['12']).toBeUndefined()
-    expect(newData.nacional['12a']).toBeDefined()
   })
 
   it('collectSortedNewMonths returns unique sorted month list', () => {
