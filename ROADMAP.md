@@ -39,6 +39,7 @@ La aplicación ya incluye:
 - [x] Evitar commits cuando solo cambian `lastUpdated` o `generatedAt`.
 - [x] Reescribir historial para agrupar commits automáticos antiguos.
 - [x] Retirar la PWA activa y limpiar service workers heredados para priorizar frescura de datos.
+- [x] Actualizar GitHub Actions a versiones compatibles con Node 24.
 - [ ] Confirmar en GitHub Actions que la próxima ejecución programada no genera commit sin cambio real de datos.
 
 ### P1 — Verificación de mantenimiento
