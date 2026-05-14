@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync } from 'fs'
+import { mkdirSync } from 'fs'
 import { readFile } from 'fs/promises'
 import { execFileSync } from 'child_process'
 import {
@@ -9,6 +9,7 @@ import {
   normalizeSeries,
 } from './lib/download-ine-rubricas-core.mjs'
 import { fetchJsonWithRetry, isRetriableInePayload } from './lib/ine-fetch.mjs'
+import { writeJsonPreservingMetadata } from './lib/stable-json-output.mjs'
 
 const BASE = 'https://servicios.ine.es/wstempus/js/ES'
 const DATE_RANGE = '20020101:20271231'
@@ -139,9 +140,9 @@ async function main() {
   }
 
   mkdirSync('src/data', { recursive: true })
-  writeFileSync(OUTPUT_PATH, JSON.stringify(output))
+  const writeResult = writeJsonPreservingMetadata(OUTPUT_PATH, output, 'generatedAt')
 
-  console.log('\n✅ Dataset generado')
+  console.log(writeResult.dataChanged ? '\n✅ Dataset generado' : '\n✅ Dataset sin cambios reales')
   console.log(`  Catálogo: ${catalog.length} nodos`)
   console.log(`  Series clase (dedupe): ${classPayload.length}`)
   console.log(
@@ -149,6 +150,9 @@ async function main() {
   )
   console.log(`  Serie de referencia IPC general: ${generalPayload.length}`)
   console.log(`  Meses: ${months[0]} → ${months[months.length - 1]} (${months.length})`)
+  if (writeResult.metadataPreserved) {
+    console.log('  generatedAt conservado porque los datos no cambiaron')
+  }
   if (missingClassMap.length > 0) {
     console.log(`  Aviso: ${missingClassMap.length} clases sin mapping por nombre`)
   }

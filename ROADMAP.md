@@ -1,158 +1,82 @@
-# ROADMAP — Rúbricas INE + Inflación Acumulada (2002+)
+# ROADMAP — Estado actual y próximos pasos
 
-Estado: Activo  
-Última actualización: 2026-02-21
+Estado: Vivo
+Última revisión: 2026-05-14
 
-## 1. Objetivo
+Este roadmap sustituye el plan por fases de febrero de 2026. El inventario detallado de lo que existe hoy está en `docs/estado-actual.md`.
 
-Construir un módulo interactivo que permita:
+## 1. Producto actual
 
-- Seleccionar productos/rúbricas al máximo nivel de desagregación disponible en INE.
-- Ver la inflación acumulada desde `2002-01` hasta el último dato disponible.
-- Añadir una referencia del IPC general para comparación.
-- Integrar el módulo en la web del Centro (embebible y estable).
+La aplicación ya incluye:
 
-## 2. Alcance de V1
+- Calculadora de IPC personal por comunidad autónoma y periodo.
+- Landing + quiz de onboarding para generar pesos personalizados.
+- Comparación frente al IPC oficial del INE.
+- Comparaciones contra perfiles predefinidos y regiones.
+- Pestañas de evolución, rúbricas, desglose, sueldo y regiones.
+- Módulo de rúbricas ECOICOP integrado en la app principal y en modo embed.
+- Compartir por URL e imagen.
+- Rutas de metodología y privacidad.
+- Analítica opcional, modo claro/oscuro, tema opcional y PWA.
 
-- Selector de rúbricas (búsqueda + jerarquía).
-- Gráfico temporal interactivo (multi-serie).
-- Cálculo de inflación acumulada robusto y testeado.
-- URL compartible con estado de selección.
-- Modo `embed` listo para integración externa.
+## 2. Decisiones vigentes
 
-Fuera de alcance en V1:
+- **Datos estáticos en bundle**: la app consume JSON generado por scripts porque la API del INE no es fiable para CORS en navegador.
+- **IPC principal encadenado**: `scripts/download-ine-data.mjs` usa la tabla histórica base 2021 y encadena meses recientes de la tabla base 2025.
+- **Rúbricas V1 en clases ECOICOP**: el explorador usa `g3=764` como nivel seleccionable.
+- **Rúbricas con base 2002 estricta**: por defecto solo entran series con dato en `2002-01`.
+- **Benchmark de rúbricas**: la referencia visual actual es una línea horizontal con el IPC general acumulado del periodo visible.
+- **Límite de 6 rúbricas**: se mantiene por legibilidad y rendimiento móvil.
+- **URL como estado compartible**: la calculadora usa parámetros compactos (`ws`, `s`, `e`, `r`, `t`, `rs`, `c`, `cr`, `theme`, `embed=1`).
+- **Carga diferida**: los módulos pesados se cargan con `React.lazy`.
 
-- Exportación avanzada (PDF/CSV complejo con branding).
-- Comparación internacional.
-- Segmentaciones demográficas avanzadas.
+## 3. Próximos pasos prioritarios
 
-## 3. Decisiones Bloqueantes (Fase 0)
+### P0 — Estabilizar actualización de datos
 
-Antes de desarrollar, cerrar estas 3 decisiones:
+- [x] Confirmar que el workflow actualiza tanto el dataset principal como el dataset de rúbricas.
+- [x] Evitar commits cuando solo cambian `lastUpdated` o `generatedAt`.
+- [ ] Confirmar en GitHub Actions que la próxima ejecución programada no genera commit sin cambio real de datos.
+- [ ] Decidir si se quiere reescribir historial para agrupar commits automáticos antiguos.
 
-- Definir métrica exacta de la línea de referencia del IPC general.
-- Confirmar nivel máximo de desagregación que usaremos en UI (rúbrica/subrúbrica/artículo, según cobertura real de INE).
-- Confirmar máximo de series simultáneas en gráfico (recomendado: 6).
+### P1 — Verificación de mantenimiento
 
-Recomendación técnica para coherencia estadística:
-
-- Gráfico principal: inflación acumulada por serie, base `2002-01 = 0%`.
-- Referencia IPC general: serie acumulada del IPC general en el mismo eje.
-- Si se exige línea horizontal, usar una métrica explícita separada (p. ej. promedio anualizado) y etiquetarla como referencia, no como acumulado.
-
-## 4. Plan por Fases (orden de ejecución)
-
-### Fase 0 — Cierre metodológico (1-2 días)
-
-- [x] Documento corto de definición estadística (fórmulas y etiquetas finales).
-- [x] Decisión final de referencia IPC general.
-- [x] Mock rápido del comportamiento UI para validar con stakeholders.
-
-Criterio de aceptación:
-
-- Definición aprobada por negocio/autor (sin ambigüedades de interpretación).
-
-### Fase 1 — Datos INE al máximo desglose (4-6 días)
-
-- [x] Extender script de datos para obtener series de mayor desagregación (`scripts/download-ine-rubricas-data.mjs`).
-- [x] Incorporar metadatos por serie: `id`, `nombre`, `nivel`, `parentId`, `firstMonth`, `lastMonth`, `coverage`.
-- [ ] Mantener compatibilidad con empalme de bases/metodologías.
-- [x] Validar cobertura desde 2002 y registrar huecos.
-- [x] Generar artefacto estático optimizado para frontend (`src/data/ipc-rubricas.json`).
-
-Criterio de aceptación:
-
-- Dataset reproducible por script, con cobertura documentada y sin mezcla metodológica incorrecta.
-
-### Fase 2 — Motor de cálculo y validación (2-3 días)
-
-- [x] Crear utilidades puras para inflación acumulada desde fecha base.
-- [x] Manejo de series incompletas (arranque tardío, meses faltantes).
-- [x] Añadir tests unitarios de fórmulas y casos borde.
-- [ ] Verificación cruzada con muestra manual INE.
-
-Criterio de aceptación:
-
-- Cálculos deterministas, testeados y trazables a datos fuente.
-
-### Fase 3 — UX de selección de rúbricas (3-4 días)
-
-- [x] Nuevo selector jerárquico con búsqueda textual.
-- [x] Límite de selección simultánea y feedback de validación.
-- [x] Estado persistente en URL.
-- [x] Accesibilidad completa (teclado, etiquetas, roles).
-
-Criterio de aceptación:
-
-- Selección rápida incluso con catálogo grande y sin degradar accesibilidad.
-
-### Fase 4 — Gráfico interactivo (3-4 días)
-
-- [x] Componente de gráfico lazy-loaded.
-- [x] Render multi-serie + referencia IPC general (línea horizontal benchmark).
-- [x] Tooltip claro (valor, base, mes, acumulado).
-- [x] Zoom/rango temporal y reset.
-- [x] Etiquetado directo al final de líneas + leyenda robusta para móvil/desktop.
-
-Criterio de aceptación:
-
-- Interacción fluida en móvil/desktop con datos reales y leyenda comprensible.
-
-### Fase 5 — Integración embed para web del Centro (1-2 días)
-
-- [ ] Ruta/vista específica para `embed`.
-- [ ] Parámetros por URL (`series`, `from`, `to`, `lang`, etc.).
-- [ ] Layout minimal y estable para iframe.
-- [ ] Guía de integración para terceros.
-
-Criterio de aceptación:
-
-- Embed funcional en entorno externo sin romper navegación principal.
-
-### Fase 6 — QA, rendimiento y release (2-3 días)
-
-- [ ] Performance budget (peso de dataset, tiempo de render, interacciones).
-- [ ] Tests de integración y smoke E2E del flujo principal.
-- [ ] Revisión de copy y metodología en español.
-- [ ] Checklist final de release.
-
-Criterio de aceptación:
-
-- Build de producción estable, métricas dentro de umbral y documentación actualizada.
-
-## 5. Riesgos y mitigaciones
-
-- Riesgo: incoherencia estadística entre acumulado y referencia horizontal.
-  - Mitigación: cerrar definición en Fase 0 y reflejarla en labels.
-- Riesgo: explosión de volumen de datos al máximo desglose.
-  - Mitigación: particionado/lazy load y límite de series activas.
-- Riesgo: series con cobertura desigual desde 2002.
-  - Mitigación: mostrar cobertura por serie y controlar comparabilidad.
-
-## 6. Entregables
-
-- `scripts/download-ine-data.mjs` ampliado y documentado.
-- Nuevo dataset y metadatos de rúbricas.
-- Nuevo módulo UI de selección + gráfico.
-- Tests unitarios/integración para cálculos y flujo principal.
-- Documentación de metodología e integración `embed`.
-
-## 7. Estado actual y pausa
-
-Bloque principal de rúbricas implementado:
-
-- Dataset de rúbricas + script de descarga.
-- Selector interactivo + benchmark IPC general.
-- Integración en pestaña principal y modo `embed`.
-- Test unitarios de cálculo y test de componente.
-- Suite Playwright base (smoke + rubricas) y script de capturas.
-
-## 8. Pendientes inmediatos (dejados en pausa)
-
-- [ ] Ejecutar `npm run test:e2e` completo (desktop + mobile) y dejar evidencia de ejecución final.
-- [ ] Re-generar `npm run qa:screenshots` y validar visualmente ausencia de clipping en:
+- [ ] Ejecutar `npm run test:e2e` completo en desktop y mobile antes del próximo cambio funcional.
+- [ ] Revisar y corregir el smoke E2E de embed de rúbricas si conserva copy antiguo.
+- [ ] Ejecutar `npm run qa:screenshots` antes del próximo ajuste visual relevante.
+- [ ] Validar visualmente:
+  - `/?t=evolucion`
   - `/?t=rubricas`
   - `/?embed=1&t=rubricas`
   - móvil y desktop
-- [ ] Cerrar verificación cruzada manual INE (muestra de rúbricas vs cálculo acumulado) y documentarla.
-- [ ] Completar guía de integración embed para web externa (parámetros soportados y snippet iframe).
+- [ ] Documentar una verificación cruzada manual contra muestra INE para rúbricas acumuladas.
+
+### P1 — Presupuesto de rendimiento
+
+- [ ] Medir peso real de los JSON y chunks principales.
+- [ ] Registrar umbrales aceptables para primera carga y cambio de pestaña.
+- [ ] Decidir si `ipc-rubricas.json` debe partirse o mantenerse como carga diferida única.
+
+### P1 — Rubricas V1.1
+
+- [ ] Decidir si se exponen series sin base `2002-01`.
+- [ ] Si se exponen, añadir etiqueta de cobertura reducida y reglas claras de comparabilidad.
+- [ ] Evaluar si el IPC general debe poder mostrarse también como serie temporal opcional además del benchmark horizontal.
+
+### P2 — Exportación y reutilización
+
+- [ ] Crear guía de integración embed si aparece un tercero interesado.
+- [ ] Documentar parámetros soportados actualmente.
+- [ ] Aclarar que el embed usa `s`/`e` para rango temporal, no `from`/`to`.
+- [ ] Definir si hace falta `lang`; hoy toda la UI está en español.
+- [ ] Exportación CSV simple del gráfico de rúbricas.
+- [ ] Exportación de imagen específica para rúbricas.
+- [ ] Presets o URLs preconfiguradas para integraciones editoriales.
+
+## 4. Documentos relacionados
+
+- `docs/estado-actual.md`: inventario actual del producto.
+- `docs/rubricas-fase0-metodologia.md`: decisiones metodológicas cerradas para rúbricas V1.
+- `docs/rubricas-data-contract.md`: contrato del dataset de rúbricas.
+- `docs/rubricas-spike-2026-02-21.md`: análisis de cobertura histórica por nivel ECOICOP.
+- `docs/rubricas-referencia-visual-santiago.md`: referencia visual usada para el gráfico de rúbricas.

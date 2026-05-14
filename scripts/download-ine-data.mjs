@@ -1,4 +1,4 @@
-import { writeFileSync, mkdirSync } from 'fs'
+import { mkdirSync } from 'fs'
 import {
   assertArrayResponse,
   chainLinkRegions,
@@ -9,6 +9,7 @@ import {
   resolveRegionCode,
 } from './lib/download-ine-data-core.mjs'
 import { fetchJsonWithRetry } from './lib/ine-fetch.mjs'
+import { writeJsonPreservingMetadata } from './lib/stable-json-output.mjs'
 
 const BASE = 'https://servicios.ine.es/wstempus/js/ES'
 const HISTORICAL_DATE_RANGE = '20020101:20271231'
@@ -207,11 +208,18 @@ async function main() {
   }
 
   mkdirSync('src/data', { recursive: true })
-  writeFileSync('src/data/ipc-data.json', JSON.stringify(output))
+  const writeResult = writeJsonPreservingMetadata('src/data/ipc-data.json', output, 'lastUpdated')
 
   // Summary
   const sizeKB = (Buffer.byteLength(JSON.stringify(output)) / 1024).toFixed(0)
-  console.log(`\n✅ Guardado: ${months.length} meses, ${Object.keys(regions).length} regiones (${sizeKB} KB)`)
+  if (writeResult.dataChanged) {
+    console.log(`\n✅ Guardado: ${months.length} meses, ${Object.keys(regions).length} regiones (${sizeKB} KB)`)
+  } else {
+    console.log(`\n✅ Sin cambios reales: ${months.length} meses, ${Object.keys(regions).length} regiones (${sizeKB} KB)`)
+  }
+  if (writeResult.metadataPreserved) {
+    console.log('   lastUpdated conservado porque los datos no cambiaron')
+  }
   console.log(`   Rango: ${months[0]} → ${months[months.length - 1]}`)
 
   // Verify chain-link for nacional/00 (general index)

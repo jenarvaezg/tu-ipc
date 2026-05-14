@@ -56,9 +56,9 @@ npm run download-data   # Actualizar tras la publicacion mensual del INE (~dia 1
 
 Push a `main` → GitHub Actions ejecuta tests + build → GitHub Pages en [tu-ipc.es](https://tu-ipc.es).
 
-## Roadmap
+## Estado y roadmap
 
-El plan de implementación para el módulo de rúbricas y acumulado histórico está en `ROADMAP.md`.
+El inventario actual del producto está en `docs/estado-actual.md`. Los próximos pasos vivos están en `ROADMAP.md`.
 
 ## Licencia
 
