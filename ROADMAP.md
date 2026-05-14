@@ -17,7 +17,7 @@ La aplicación ya incluye:
 - Módulo de rúbricas ECOICOP integrado en la app principal y en modo embed.
 - Compartir por URL e imagen.
 - Rutas de metodología y privacidad.
-- Analítica opcional, modo claro/oscuro, tema opcional y PWA.
+- Analítica opcional, modo claro/oscuro y tema opcional.
 
 ## 2. Decisiones vigentes
 
@@ -29,6 +29,7 @@ La aplicación ya incluye:
 - **Límite de 6 rúbricas**: se mantiene por legibilidad y rendimiento móvil.
 - **URL como estado compartible**: la calculadora usa parámetros compactos (`ws`, `s`, `e`, `r`, `t`, `rs`, `c`, `cr`, `theme`, `embed=1`).
 - **Carga diferida**: los módulos pesados se cargan con `React.lazy`.
+- **Frescura de datos sobre PWA**: la web no optimiza instalación/offline; se retira la PWA activa para evitar caches que puedan mostrar meses antiguos.
 
 ## 3. Próximos pasos prioritarios
 
@@ -36,8 +37,9 @@ La aplicación ya incluye:
 
 - [x] Confirmar que el workflow actualiza tanto el dataset principal como el dataset de rúbricas.
 - [x] Evitar commits cuando solo cambian `lastUpdated` o `generatedAt`.
+- [x] Reescribir historial para agrupar commits automáticos antiguos.
+- [x] Retirar la PWA activa y limpiar service workers heredados para priorizar frescura de datos.
 - [ ] Confirmar en GitHub Actions que la próxima ejecución programada no genera commit sin cambio real de datos.
-- [ ] Decidir si se quiere reescribir historial para agrupar commits automáticos antiguos.
 
 ### P1 — Verificación de mantenimiento
 
@@ -80,3 +82,4 @@ La aplicación ya incluye:
 - `docs/rubricas-data-contract.md`: contrato del dataset de rúbricas.
 - `docs/rubricas-spike-2026-02-21.md`: análisis de cobertura histórica por nivel ECOICOP.
 - `docs/rubricas-referencia-visual-santiago.md`: referencia visual usada para el gráfico de rúbricas.
+- `docs/adr/0001-retirar-pwa-para-priorizar-frescura.md`: decisión de retirar PWA activa para priorizar frescura de datos.

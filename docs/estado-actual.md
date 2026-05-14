@@ -15,9 +15,9 @@ Tu IPC es una calculadora de inflacion personal para Espana. Permite ajustar la 
 
 Archivo: `src/data/ipc-data.json`
 
-- Ultima generacion registrada: `2026-04-28T10:09:08.033Z`.
-- Rango mensual incluido: `2002-01` a `2026-03`.
-- Meses incluidos: 291.
+- Ultima generacion registrada: `2026-05-14T13:53:30.613Z`.
+- Rango mensual incluido: `2002-01` a `2026-04`.
+- Meses incluidos: 292.
 - Ambito territorial: Total Nacional + 19 comunidades/ciudades autonomas.
 - Categorias: indice general `00` + 12 grupos ECOICOP usados por la calculadora.
 
@@ -28,9 +28,9 @@ El script `scripts/download-ine-data.mjs` descarga datos del INE, mantiene la se
 Archivo: `src/data/ipc-rubricas.json`
 
 - Version de esquema: `1.0`.
-- Ultima generacion registrada: `2026-04-28T10:09:29.661Z`.
+- Ultima generacion registrada: `2026-05-14T13:53:53.738Z`.
 - Mes base: `2002-01`.
-- Rango mensual incluido: `2002-01` a `2026-03`.
+- Rango mensual incluido: `2002-01` a `2026-04`.
 - Series incluidas: 1 serie de grupo para `Indice general` + 108 series de clase ECOICOP con dato en el mes base.
 - Catalogo incluido: 20 grupos, 71 subgrupos y 188 clases.
 
@@ -105,14 +105,14 @@ El modulo de rubricas usa como nivel operativo las **clases ECOICOP** (`g3=764`)
 - `?embed=1&t=rubricas` muestra el explorador de rubricas.
 - El embed reutiliza los mismos parametros de URL que la app principal; no hay todavia una guia formal de integracion externa.
 
-### Privacidad, tema y PWA
+### Privacidad y tema
 
 - Ruta `metodologia` para explicacion metodologica.
 - Ruta `privacidad` para politica de privacidad.
 - Analitica con Google Analytics condicionada a consentimiento local.
 - Modo claro/oscuro persistido.
 - Tema de color opcional por parametro `theme`; hoy existe `hesperides`.
-- Configuracion PWA en Vite.
+- La instalacion/offline no es objetivo de producto; la web prioriza frescura de datos frente a caches PWA.
 
 ## Parametros URL actuales
 
@@ -141,6 +141,7 @@ El modulo de rubricas usa como nivel operativo las **clases ECOICOP** (`g3=764`)
 - Regenera `src/data/ipc-data.json` con indice general, categorias ECOICOP y regiones.
 - Regenera `src/data/ipc-rubricas.json` con clases ECOICOP nacionales y referencia de indice general.
 - La intencion operativa es commitear solo cuando hay cambios reales en los datos, no por cambios de timestamp de generacion.
+- La web publica prioriza mostrar los ultimos datos desplegados; no conserva caches PWA como fuente preferente.
 
 ## Gaps conocidos
 
