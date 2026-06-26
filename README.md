@@ -44,7 +44,13 @@ npm run qa:screenshots # Capturas de QA visual con Playwright
 
 ## Datos
 
-Los datos provienen de la [API del INE](https://www.ine.es/dyngs/DAB/index.htm?cid=1100) (indices ECOICOP, base 2021=100). Como la API no tiene CORS fiable, los datos se descargan con un script Node y se incluyen como JSON estatico en el bundle.
+Los datos provienen de la [API del INE](https://www.ine.es/dyngs/DAB/index.htm?cid=1100) (indices ECOICOP, base 2021=100). La API oficial publica tablas grandes y crudas, asi que los datos se descargan con un script Node, se normalizan y se incluyen como JSON estatico.
+
+El dataset principal tambien queda publicado como endpoint estatico:
+
+```ts
+const ipcData = await fetch('/data/ipc-data.json').then((res) => res.json())
+```
 
 El script maneja la coexistencia de series ECOICOP v1 y v2 seleccionando siempre la serie mas larga (v1, historico completo desde 2009) y encadenando datos de la tabla con base 2025 para extender la serie.
 

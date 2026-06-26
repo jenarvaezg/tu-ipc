@@ -201,7 +201,9 @@ async function main() {
   }
 
   mkdirSync('src/data', { recursive: true })
+  mkdirSync('public/data', { recursive: true })
   const writeResult = writeJsonPreservingMetadata('src/data/ipc-data.json', output, 'lastUpdated')
+  writeJsonPreservingMetadata('public/data/ipc-data.json', output, 'lastUpdated')
 
   // Summary
   const sizeKB = (Buffer.byteLength(JSON.stringify(output)) / 1024).toFixed(0)
