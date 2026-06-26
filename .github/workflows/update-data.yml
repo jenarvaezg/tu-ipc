@@ -8,6 +8,11 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -34,3 +39,12 @@ jobs:
           git add src/data/ipc-data.json src/data/ipc-rubricas.json
           HUSKY=0 git commit -m "chore: update IPC datasets from INE"
           git push
+      - if: steps.data-diff.outputs.changed == 'true'
+        uses: actions/configure-pages@v6
+      - if: steps.data-diff.outputs.changed == 'true'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+      - if: steps.data-diff.outputs.changed == 'true'
+        id: deployment
+        uses: actions/deploy-pages@v5
